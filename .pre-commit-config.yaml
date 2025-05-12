@@ -64,12 +64,12 @@ repos:
       args: []
       require_serial: true
 
-# - repo: local
-#   hooks:
-#     - id: pytest
-#       name: pytest
-#       entry: pytest services/backend/ --tb=short
-#       language: system
-#       types: [file,python]
-#       pass_filenames: false
-#       always_run: true
+- repo: local
+  hooks:
+    - id: pytest-ml_host_backend
+      name: pytest
+      entry: pytest services/ml_host_backend/ --tb=short
+      language: system
+      types: [file,python]
+      pass_filenames: false
+      always_run: true

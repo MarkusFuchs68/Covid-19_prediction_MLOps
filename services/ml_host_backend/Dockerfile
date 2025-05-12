@@ -18,23 +18,34 @@ COPY ./requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
+# copy FastAPI app files
+COPY ./app .
+
 # ----- DEV STAGE -----
 FROM builder AS dev
+# setup env vars
 ENV LOG=1
-# copy service files
-COPY . .
+# copy and install test requirements
+COPY ./requirements_test.txt .
+RUN pip install -r requirements_test.txt
+# copy test folder
+COPY ./tests .
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # # ----- TEST STAGE -----
-# FROM builder AS test
-# COPY ./tests/ .
-# # setup env vars
-# ENV LOG=1
+# Stages used for testing later in CI/CD pipeline
+FROM builder AS test
+# setup env vars
+ENV LOG=1
+# copy and install test requirements
+COPY ./requirements_test.txt .
+RUN pip install -r requirements_test.txt
+COPY ./tests/ .
+CMD ["pytest"]
 
 # # ----- PROD STAGE -----
 FROM builder AS prod
 # usually you would copy app files, but for here we just copy test files
-COPY main.py .
 # setup env vars
 ENV LOG=0
 # create a non-root user and switch to it

@@ -7,6 +7,12 @@ services:
     ports:
     - "8000:8000"
 
+  ml_host_backend_test:
+    build:
+      context: ./services/ml_host_backend
+      dockerfile: Dockerfile
+      target: test
+
   ml_host_backend_prod:
     build:
       context: ./services/ml_host_backend
