@@ -1,0 +1,17 @@
+services:
+  ml_host_backend_dev:
+    build:
+      context: ./services/ml_host_backend
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+    - "8000:8000"
+  
+  ml_host_backend_prod:
+    build:
+      context: ./services/ml_host_backend
+      dockerfile: Dockerfile
+      target: prod
+    ports:
+    - "8080:8080"
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
