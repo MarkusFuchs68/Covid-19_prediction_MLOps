@@ -26,7 +26,7 @@ pip install -r requirements_development.txt
 - Add changes: <code>git add --all</code> or <code>git add \<file\></code>
 - Commit changes: <code>git commit -m \<message\></code>
 - Push changes: <code>git push</code>
-- Merge branch:
+- Merge branch: <code>git merge \<branch_name\></code>
 
 
 ### Pre-Commit Hooks
