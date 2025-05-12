@@ -48,3 +48,15 @@ Pre-Commit Hooks detect changes and will execute configured pipelines on changed
 - If pipeline "failed" and changes automatically occured, you need to add new changes and than commit again which will retrigger the pre-commit pipelines. It is normal to repeat this process multiple times.
 - Some packages, such as flake8 will not automatically fix errors, in that case you might need to fix the error manually. E.g. F401 imported but unused requires you to delete unused import yourself.
 - <code>setup.cfg</code> is the configuration file to control behaviour for certain hooks.
+
+## Docker-Compose
+- <code>docker-compose up -d --build</code>
+  * -d to run in detached mode
+  * --build to make sure it repeats building file after code changes
+- Execute pytest on container<code>docker-compose exec ml_host_backend_dev pytest .</code>
+- Connect to container <code>docker compose exec -it ml_host_backend_dev sh</code>
+
+## Docker
+- In most cases we build, tag and run containers through docker-compose
+- List containers <code>docker ps</code>
+- Connect to container <code>docker exec -it \<id\> sh</code> e.g. <code>docker exec -it c223c30b3fb8 sh</code>
