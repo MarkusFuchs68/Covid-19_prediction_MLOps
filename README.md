@@ -21,7 +21,7 @@ pip install -r requirements_development.txt
 
 - check status: <code>git status</code>
 - New branch: <code>git checkout -b \<branch_name\></code> after that: <code>git push --set-upstream origin \<branch_name\></code>
-- Switch branch
+- Switch branch <code>git checkout \<branch_name\></code>
 - Pull changes: <code>git pull</code> (alternative: fetch)
 - Add changes: <code>git add --all</code> or <code>git add \<file\></code>
 - Commit changes: <code>git commit -m \<message\></code>
