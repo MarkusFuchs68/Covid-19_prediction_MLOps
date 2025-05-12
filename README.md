@@ -4,20 +4,25 @@ In this repository we collaborate on the Covid-19 detection project a with focus
 
 # Development Best Practices
 
+## Folder Structure
+- services: Place for all containerized services for later deployments
+- prototyping: Place for anything (notebooks, scripts, whatever) does not require testing and coding standards can be ignored.
+- .envs: Place for local env files (e.g. later used for shared docker-compose setup) We can control with gitignore wether files should be on git or not, still: Be cautious using security related files!
+- .dvc: Related to setup for data version control.
+
 ## Python
 We're using Python version 3.11.9 for now.
 In later stage it is possible to select different python versions for each service (if required).
 
 - For now you can create venv in root of the repository. In case we have need different venv for each service in local setup aswell it is possible to init venv at service level. <code>python -m venv venv</code>
-- Install requirements_development.txt for local setup
+- Install requirements_dev.txt for local setup
 <code>
-pip install -r requirements_development.txt
+pip install -r requirements_dev.txt
 </code>
 
 ## Git Flow
 
-- Branch Naming Convention: <stage>-<name>-<feature>
-- E.g.: dev-phil-proj_structure
+- Branch Naming Convention: <code>\<stage>-\<name>-\<feature></code> e.g.: dev-phil-proj_structure
 
 - check status: <code>git status</code>
 - New branch: <code>git checkout -b \<branch_name\></code> after that: <code>git push --set-upstream origin \<branch_name\></code>
@@ -42,3 +47,4 @@ Pre-Commit Hooks detect changes and will execute configured pipelines on changed
 - Pipelines will be triggered automatically in in most cases errors will be fixed automatically through python packages(sorting, formatting, ...).
 - If pipeline "failed" and changes automatically occured, you need to add new changes and than commit again which will retrigger the pre-commit pipelines. It is normal to repeat this process multiple times.
 - Some packages, such as flake8 will not automatically fix errors, in that case you might need to fix the error manually. E.g. F401 imported but unused requires you to delete unused import yourself.
+- <code>setup.cfg</code> is the configuration file to control behaviour for certain hooks.
