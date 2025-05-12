@@ -1,0 +1,8 @@
+# linters and code formatters
+black
+flake8
+isort
+pre-commit
+pylint
+pytest
+# pytest-cov

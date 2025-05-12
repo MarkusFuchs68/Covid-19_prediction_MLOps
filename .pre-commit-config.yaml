@@ -1,0 +1,75 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+fail_fast: true
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    - id: check-ast
+    - id: trailing-whitespace
+    - id: check-added-large-files
+    - id: mixed-line-ending
+    - id: check-json
+    - id: requirements-txt-fixer
+    - id: end-of-file-fixer
+    - id: check-yaml
+      exclude: "helmfile.yaml"
+
+#-   repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
+#    rev: v0.1.0
+#    hooks:
+#    - id: dockerfilelint
+
+-   repo: local
+    hooks:
+      - id: isort
+        name: isort
+        language: system
+        entry: isort
+        args: ["--skip='migrations'", "--profile=black"]
+        pass_filenames: true
+        types: [file,python]
+
+-   repo: local
+    hooks:
+      - id: black
+        name: black
+        language: system
+        entry: black
+        args: ["--exclude='migrations|packages' --line-length=300 --preview"]
+        pass_filenames: true
+        types: [file,python]
+- repo: local
+  hooks:
+    - id: pylint
+      name: pylint
+      entry: pylint
+      language: system
+      types: [file,python]
+      args:
+        [
+          "-rn", # Only display messages
+          "-d C,no-error,design,E0401,W,R,E", # please remove W later
+          "--extension-pkg-whitelist=pydantic"
+        ]
+      require_serial: true
+
+- repo: local
+  hooks:
+    - id: flake8
+      name: flake8
+      entry: flake8
+      language: system
+      types: [file,python]
+      args: []
+      require_serial: true
+
+# - repo: local
+#   hooks:
+#     - id: pytest
+#       name: pytest
+#       entry: pytest services/backend/ --tb=short
+#       language: system
+#       types: [file,python]
+#       pass_filenames: false
+#       always_run: true
