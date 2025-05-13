@@ -7,9 +7,24 @@ services:
     ports:
     - "8000:8000"
 
+  ml_train_hub_dev:
+    build:
+      context: ./services/ml_train_hub
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+    - "8081:8081" # MLflow server
+    - "8082:8082" # FastAPI server
+
   ml_host_backend_test:
     build:
       context: ./services/ml_host_backend
+      dockerfile: Dockerfile
+      target: test
+
+  ml_host_train_hub_test:
+    build:
+      context: ./services/ml_train_hub
       dockerfile: Dockerfile
       target: test
 
@@ -21,3 +36,12 @@ services:
     ports:
     - "8080:8080"
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+
+  ml_host_train_hub_prod:
+    build:
+      context: ./services/ml_train_hub
+      dockerfile: Dockerfile
+      target: prod
+    ports:
+    - "8081-8082:8081-8082" # MLflow server and FastAPI server
+    command: ["./entrypoint.sh"]
