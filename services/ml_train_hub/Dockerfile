@@ -2,8 +2,8 @@
 # dev: docker image build --target dev -t ml_train_hub:dev .
 # test: docker image build --target test -t ml_train_hub:test .
 # prod: docker image build --target prod -t ml_train_hub:<version_number> .
-# run them with (-d = detached):
-# dev: docker run -d --rm -p 8081-8082:8081-8082 --name ml_train_hub_dev ml_train_hub:dev
+# run them with (-d = detached) from the ml_train_hub folder!:
+# dev: docker run -d --rm -p 8081-8082:8081-8082 -v ./mlruns:/usr/src/app/mlruns --name ml_train_hub_dev ml_train_hub:dev
 # test: docker run -d --rm -p 8081-8082:8081-8082 --name ml_train_hub_test ml_train_hub:test
 # prod: docker run -d --rm -p 8081-8082:8081-8082 --name ml_train_hub_prod ml_train_hub:<version_number>
 

@@ -13,8 +13,7 @@ services:
       dockerfile: Dockerfile
       target: dev
     ports:
-    - "8081:8081" # MLflow server
-    - "8082:8082" # FastAPI server
+    - "8081-8082:8081-8082" # MLflow server and FastAPI server
 
   ml_host_backend_test:
     build:
@@ -42,6 +41,8 @@ services:
       context: ./services/ml_train_hub
       dockerfile: Dockerfile
       target: prod
+    volumes:
+      - ./mlruns:/usr/src/app/mlruns # adapt this for the prod server, where the mlruns are stored
     ports:
     - "8081-8082:8081-8082" # MLflow server and FastAPI server
     command: ["./entrypoint.sh"]
