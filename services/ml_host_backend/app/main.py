@@ -1,10 +1,38 @@
 from fastapi import FastAPI
-from app.models.router import router as models_router
+from app.routes.models import router as models_router
+from app.exceptions.service_exceptions import ModelNotFoundException
+from app.exceptions.client_exceptions import InvalidArgumentException
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
-app.include_router(models_router, prefix="/api/models", tags=["models"])
+@app.exception_handler(InvalidArgumentException)
+def handle_invalid_argument_eception(
+    request: Request,
+    exception: InvalidArgumentException
+    ):
+    return JSONResponse(
+        status_code=400,
+        content={
+            'url': str(request.url),
+            'message': exception.message
+        }
+    )
+@app.exception_handler(ModelNotFoundException)
+def handle_model_not_found(
+    request: Request,
+    exception: ModelNotFoundException
+    ):
+    return JSONResponse(
+        status_code=404,
+        content={
+            'url': str(request.url),
+            'message': exception.message
+        }
+    )
 
+app.include_router(models_router, prefix="/api/models", tags=["models"])
 
 @app.get("/health")
 def health():

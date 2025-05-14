@@ -25,7 +25,7 @@ class GoogleDriveServiceException(Exception):
         self.message = message
         super().__init__(self.message)
 
-def GoogleDriveDownloadException(Exception):
+class GoogleDriveDownloadException(Exception):
     """
     Google drive download exception
     """

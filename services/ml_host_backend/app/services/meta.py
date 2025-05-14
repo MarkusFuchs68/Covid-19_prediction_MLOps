@@ -286,3 +286,7 @@ models_summary = modelisation_model_summary = [
         "non_trainable_params": "0",
     }
 ]
+
+classes_4 = ['COVID', 'Lung Opacity', 'Normal', 'Viral Pneumonia']
+
+classes_2 = ['Normal', 'COVID']
