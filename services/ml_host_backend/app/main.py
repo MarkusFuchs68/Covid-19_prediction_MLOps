@@ -1,12 +1,9 @@
 from fastapi import FastAPI
+from app.models import router as models_router
 
 app = FastAPI()
 
-
-@app.get("/ping")
-def pong():
-    """Ping Pong."""
-    return {"ping": "pong!"}
+app.include_router(models_router, prefix="/api/models", tags=["models"])
 
 
 @app.get("/health")
