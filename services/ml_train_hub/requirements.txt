@@ -1,0 +1,2 @@
+fastapi[standard]~=0.115.12
+mlflow~=2.22.0

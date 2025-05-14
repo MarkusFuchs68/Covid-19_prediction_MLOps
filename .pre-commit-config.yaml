@@ -6,49 +6,52 @@ exclude: ^prototyping/
 
 fail_fast: true
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
-    hooks:
-    - id: check-ast
-    - id: trailing-whitespace
-    - id: check-added-large-files
-    - id: mixed-line-ending
-    - id: check-json
-    - id: requirements-txt-fixer
-    - id: end-of-file-fixer
-    - id: check-yaml
-      exclude: "helmfile.yaml"
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+  - id: check-ast
+  - id: trailing-whitespace
+  - id: check-added-large-files
+  - id: mixed-line-ending
+  - id: check-json
+  - id: requirements-txt-fixer
+  - id: end-of-file-fixer
+  - id: check-yaml
+    exclude: "helmfile.yaml"
 
 #-   repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
 #    rev: v0.1.0
 #    hooks:
 #    - id: dockerfilelint
 
--   repo: local
-    hooks:
-      - id: isort
-        name: isort
-        language: system
-        entry: isort
-        args: ["--skip='migrations'", "--profile=black"]
-        pass_filenames: true
-        types: [file,python]
+- repo: local
+  hooks:
+    - id: isort
+      name: isort
+      language: python
+      entry: isort
+      args: ["--skip='migrations'", "--profile=black"]
+      pass_filenames: true
+      types: [file,python]
+      additional_dependencies: [isort]
 
--   repo: local
-    hooks:
-      - id: black
-        name: black
-        language: system
-        entry: black
-        args: ["--exclude='migrations|packages' --line-length=300 --preview"]
-        pass_filenames: true
-        types: [file,python]
+- repo: local
+  hooks:
+    - id: black
+      name: black
+      language: python
+      entry: black
+      args: ["--exclude='migrations|packages' --line-length=300 --preview"]
+      pass_filenames: true
+      types: [file,python]
+      additional_dependencies: [black]
+
 - repo: local
   hooks:
     - id: pylint
       name: pylint
       entry: pylint
-      language: system
+      language: python
       types: [file,python]
       args:
         [
@@ -57,23 +60,27 @@ repos:
           "--extension-pkg-whitelist=pydantic"
         ]
       require_serial: true
+      additional_dependencies: [pylint]
+
 
 - repo: local
   hooks:
     - id: flake8
       name: flake8
       entry: flake8
-      language: system
+      language: python
       types: [file,python]
       args: []
       require_serial: true
+      additional_dependencies: [flake8]
 
 - repo: local
   hooks:
-    - id: pytest-ml_host_backend
+    - id: pytest
       name: pytest
-      entry: pytest services/ml_host_backend/ --tb=short
-      language: system
+      entry: ./pre-commit-pytest.sh # pytest
+      language: python
       types: [file,python]
       pass_filenames: false
       always_run: true
+      additional_dependencies: [pytest]
