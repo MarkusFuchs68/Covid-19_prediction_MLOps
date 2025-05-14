@@ -20,6 +20,7 @@ RUN pip install -r requirements.txt
 
 # copy FastAPI app files
 COPY ./app .
+COPY ./.env .
 
 # ----- DEV STAGE -----
 FROM builder AS dev

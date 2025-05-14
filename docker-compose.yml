@@ -26,12 +26,6 @@ services:
     - "8081:8081" # MLflow server
     - "8082:8082" # FastAPI server
 
-  ml_host_backend_test:
-    build:
-      context: ./services/ml_host_backend
-      dockerfile: Dockerfile
-      target: test
-
   ml_host_train_hub_test:
     build:
       context: ./services/ml_train_hub
