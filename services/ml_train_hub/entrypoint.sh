@@ -1,7 +1,23 @@
 #!/bin/bash
 
-# start the mlflow server (in the background)
-mlflow server --host 0.0.0.0 --port 8081 &
+# Set default stage if not provided
+RUNNING_STAGE="${RUNNING_STAGE:-dev}"
 
-# start the FastAPI server (in the foreground, so the container stays running)
-uvicorn main:app --host 0.0.0.0 --port 8082
+# Define ports based on environment
+if [ "$RUNNING_STAGE" = "prod" ]; then
+  MLFLOW_PORT=8081
+  UVICORN_PORT=8082
+else
+  MLFLOW_PORT=8001
+  UVICORN_PORT=8002
+fi
+
+echo "🚀 Starting in '$RUNNING_STAGE' mode..."
+echo "MLflow will run on port $MLFLOW_PORT"
+echo "FastAPI will run on port $UVICORN_PORT"
+
+# Start MLflow in the background
+mlflow server --host 0.0.0.0 --port $MLFLOW_PORT &
+
+# Start FastAPI in the foreground
+uvicorn app.main:app --host 0.0.0.0 --port $UVICORN_PORT

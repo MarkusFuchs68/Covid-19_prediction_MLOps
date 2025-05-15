@@ -18,7 +18,7 @@ def test_log_experiment_and_register_model():
     params = {"hyperparam": "test_param"}
     metrics = {"performance": random() * 0.29 + 0.7}
     modelinfo = log_mlflow_experiment(
-        params=params,
+        hyperparams=params,
         metrics=metrics,
         model=model,
         register_model=True,
