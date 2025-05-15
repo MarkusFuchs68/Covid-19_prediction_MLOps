@@ -30,7 +30,7 @@ ENV LOG=1
 COPY ./requirements_test.txt .
 RUN pip install -r requirements_test.txt
 # copy test folder
-COPY ./tests_host_backend ./tests_host_backend
+COPY ./tests ./tests
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # # ----- TEST STAGE -----
@@ -41,7 +41,7 @@ ENV LOG=1
 # copy and install test requirements
 COPY ./requirements_test.txt .
 RUN pip install -r requirements_test.txt
-COPY ./tests_host_backend .
+COPY ./tests .
 CMD ["python", "-m", "pytest"]
 
 # # ----- PROD STAGE -----
