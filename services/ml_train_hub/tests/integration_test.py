@@ -1,10 +1,12 @@
 from random import random
 
+import pytest
 from ml_train_hub.app.mlflow_svc import log_mlflow_experiment
 from mlflow.models.model import ModelInfo
 from tensorflow.keras.models import Sequential
 
 
+@pytest.mark.integration
 def test_log_experiment():
     model = Sequential()  # create an empty model
     params = {"hyperparam": "test_param"}
@@ -13,6 +15,7 @@ def test_log_experiment():
     assert isinstance(modelinfo, ModelInfo)
 
 
+@pytest.mark.integration
 def test_log_experiment_and_register_model():
     model = Sequential()  # create an empty model
     params = {"hyperparam": "test_param"}
