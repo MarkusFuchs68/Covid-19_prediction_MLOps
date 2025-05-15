@@ -84,4 +84,4 @@ repos:
       pass_filenames: false
       always_run: true
       additional_dependencies: [pytest]
-      exclude: services/ml_train_hub/tests/integration_test.py
+      exclude: ./services/ml_train_hub/tests/integration_test.py
