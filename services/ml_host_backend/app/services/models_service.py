@@ -1,25 +1,33 @@
-import gdown
-import os
-import logging
-from app.exceptions.service_exceptions import GoogleDriveFolderEmptyException, ModelNotFoundException, GoogleDriveServiceException, GoogleDriveDownloadException
-from app.exceptions.client_exceptions import InvalidArgumentException
-from dotenv import load_dotenv
-import tensorflow as tf
-from app.services.meta import classes_2, classes_4, models_summary
-import pandas as pd
-import numpy as np
-from PIL import Image
 import io
-from PIL import UnidentifiedImageError
+import logging
+import os
+
+import gdown
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from dotenv import load_dotenv
+from ml_host_backend.app.exceptions.client_exceptions import InvalidArgumentException
+from ml_host_backend.app.exceptions.service_exceptions import (
+    GoogleDriveDownloadException,
+    GoogleDriveFolderEmptyException,
+    GoogleDriveServiceException,
+    ModelNotFoundException,
+)
+from ml_host_backend.app.services.meta import classes_4, models_summary
+from PIL import Image, UnidentifiedImageError
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-MODEL_FOLDER = os.path.join('.', 'data/models')
+MODEL_FOLDER = os.path.join(".", "data/models")
 DRIVE_URL = os.getenv("GOOGLE_DRIVE_URL")
+
 
 def read_and_prepare_image(file_content):
     try:
@@ -38,9 +46,12 @@ def read_and_prepare_image(file_content):
 
     image_array = np.array(processed_image) / 255.0
     image_array = np.expand_dims(image_array, axis=-1)  # Ensure shape (224, 224, 1)
-    logger.debug("Image converted to numpy array, normalized, and channel dimension added.")
+    logger.debug(
+        "Image converted to numpy array, normalized, and channel dimension added."
+    )
 
     return image_array
+
 
 def get_list_of_models_from_google_drive():
     """
@@ -54,24 +65,30 @@ def get_list_of_models_from_google_drive():
     logger.debug(f"Model folder: {MODEL_FOLDER}, Drive URL: {DRIVE_URL}")
 
     try:
-        file_list = gdown.download_folder(DRIVE_URL, output=MODEL_FOLDER,
-                                          quiet=True, use_cookies=False,
-                                          remaining_ok=True, skip_download=True)
+        file_list = gdown.download_folder(
+            DRIVE_URL,
+            output=MODEL_FOLDER,
+            quiet=True,
+            use_cookies=False,
+            remaining_ok=True,
+            skip_download=True,
+        )
         logger.info("Successfully retrieved the list of models.")
     except Exception as e:
-        logger.error("Error occurred while loading models from Google Drive.", exc_info=True)
+        logger.error(
+            "Error occurred while loading models from Google Drive.", exc_info=True
+        )
         raise GoogleDriveServiceException(
             "Could not load models from Google Drive."
         ) from e
-    
+
     if not file_list:
         logger.warning("No files found in the Google Drive folder.")
-        raise GoogleDriveFolderEmptyException(
-            "No files found or invalid folder URL."
-        )
-    
+        raise GoogleDriveFolderEmptyException("No files found or invalid folder URL.")
+
     logger.debug(f"Retrieved file list: {file_list}")
     return file_list
+
 
 def download_model_from_google_drive(model_file_name: str):
     """
@@ -82,7 +99,7 @@ def download_model_from_google_drive(model_file_name: str):
     logger.debug(f"Model folder: {MODEL_FOLDER}, Drive URL: {DRIVE_URL}")
 
     file_list = get_list_of_models_from_google_drive()
-    
+
     file_to_download = None
     for file in file_list:
         if model_file_name == file[1]:
@@ -91,18 +108,24 @@ def download_model_from_google_drive(model_file_name: str):
 
     if not file_to_download:
         logger.error(f"Model '{model_file_name}' not found in the Google Drive folder.")
-        raise ModelNotFoundException(f"File '{model_file_name}' not found in the Google Drive folder.")
+        raise ModelNotFoundException(
+            f"File '{model_file_name}' not found in the Google Drive folder."
+        )
 
     # Construct the download URL using image ID
-    url = f"https://drive.google.com/file/d/{file_to_download[0]}/view?usp=sharing"
     output = os.path.join(MODEL_FOLDER, model_file_name)
 
     try:
-        logger.info(f"Downloading model '{model_file_name}' with ID '{file_to_download[0]}'.")
-        gdown.download(id = file_to_download[0], output = output, quiet=False)
+        logger.info(
+            f"Downloading model '{model_file_name}' with ID '{file_to_download[0]}'."
+        )
+        gdown.download(id=file_to_download[0], output=output, quiet=False)
         logger.info(f"Successfully downloaded model '{model_file_name}'.")
     except Exception as e:
-        logger.error(f"Error occurred while downloading model '{model_file_name}'.", exc_info=True)
+        logger.error(
+            f"Error occurred while downloading model '{model_file_name}'.",
+            exc_info=True,
+        )
         raise GoogleDriveDownloadException(
             "Could not download the model from Google Drive."
         ) from e
@@ -111,12 +134,14 @@ def download_model_from_google_drive(model_file_name: str):
     logger.debug(f"Model saved at: {model_path}")
     return model_path
 
+
 def load_latest_model_version(model_name: str):
     """
     TODO: Implement
     Function to load the latest version of a model from MLFlow.
     """
     return models_summary
+
 
 def list_summary_of_all_models():
     """
@@ -125,6 +150,7 @@ def list_summary_of_all_models():
     """
     logger.info("Fetching summary of all models.")
     return models_summary
+
 
 def show_summary_of_single_model(model_name: str):
     """
@@ -140,6 +166,7 @@ def show_summary_of_single_model(model_name: str):
     logger.warning(f"Model not found: {model_name}")
     raise ModelNotFoundException(message="Model not found")
 
+
 def predict_image_classification_4_classes(model_name, file_content):
     """
     Function to predict image classification using the specified model.
@@ -151,14 +178,14 @@ def predict_image_classification_4_classes(model_name, file_content):
 
     logger.info("Identifying model for prediction.")
     models_summary = list_summary_of_all_models()
-    
+
     if model_name not in [model["name"] for model in models_summary]:
         logger.error(f"Model '{model_name}' not found.")
         raise ModelNotFoundException(f"Model '{model_name}' not found.")
     logger.info(f"Predicting image classification with model: {model_name}")
 
     # TODO: Load model from MLFlow api once ready
-    #model_path = load_latest_model_version(model_name)
+    # model_path = load_latest_model_version(model_name)
 
     model_file_name = model_name + ".keras"
     model_path = os.path.join(MODEL_FOLDER, model_file_name)
@@ -175,9 +202,11 @@ def predict_image_classification_4_classes(model_name, file_content):
     pred = model.predict(image_batch)[0]
 
     pred_df = pd.DataFrame(columns=["Predicted"] + classes)
-    pred_df.loc[model_name] = [classes[np.argmax(pred)]] + pred.round(3).astype('str').tolist() # Write prediction into table
-    pred_df.index.name = 'Model'
+    pred_df.loc[model_name] = [classes[np.argmax(pred)]] + pred.round(3).astype(
+        "str"
+    ).tolist()  # Write prediction into table
+    pred_df.index.name = "Model"
 
     logger.info(f"Prediction completed for model: {model_path}")
     # Return the prediction report
-    return pred_df 
+    return pred_df
