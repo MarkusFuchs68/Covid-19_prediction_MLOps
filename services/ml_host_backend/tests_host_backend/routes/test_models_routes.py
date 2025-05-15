@@ -32,13 +32,15 @@ def test_make_prediction_for_image_success(client):
 
     available_model = models_summary[0]["name"]
     file = {"file": ("test.png", img_bytes, "image/png")}
-    with patch("app.services.models_service.tf.keras.models.load_model", return_value=mock_model):
+    with patch("app.services.models_service.download_model_from_google_drive", return_value=None), \
+         patch("app.services.models_service.tf.keras.models.load_model", return_value=mock_model):
         response = client.post(f"{base_endpoint}/{available_model}/predict", files=file)
         assert response.status_code == 200
         assert response.json()["Predicted"][available_model] == "COVID"
 
 def test_make_prediction_for_image_invalid_file(client):
-    with patch("app.services.models_service.tf.keras.models.load_model", return_value=mock_model):
+    with patch("app.services.models_service.download_model_from_google_drive", return_value=None), \
+         patch("app.services.models_service.tf.keras.models.load_model", return_value=mock_model):
         file = {"file": ("test.txt", b"not an image", "text/plain")}
         dummy_model_name = "some name"
         response = client.post(f"{base_endpoint}/{dummy_model_name}/predict", files=file)
@@ -56,7 +58,8 @@ def test_make_prediction_for_large_image_file(client):
     img.save(img_bytes, format="PNG")
     img_bytes.seek(0)
     available_model = models_summary[0]["name"]
-    with patch("app.services.models_service.tf.keras.models.load_model", return_value=mock_model):
+    with patch("app.services.models_service.download_model_from_google_drive", return_value=None), \
+         patch("app.services.models_service.tf.keras.models.load_model", return_value=mock_model):
         files = {"file": ("large.png", img_bytes, "image/png")}
         response = client.post(f"{base_endpoint}/{available_model}/predict", files=files)
         assert response.status_code == 200
@@ -66,7 +69,8 @@ def test_make_prediction_for_image_prediction_invalid_input(client):
     files = {"file": ("test.png", io.BytesIO(file_content))}
     available_model = models_summary[0]["name"]
 
-    with patch("app.services.models_service.tf.keras.models.load_model", return_value=mock_model):
+    with patch("app.services.models_service.download_model_from_google_drive", return_value=None), \
+         patch("app.services.models_service.tf.keras.models.load_model", return_value=mock_model):
         response = client.post(f"{base_endpoint}/{available_model}/predict", files=files)
         assert response.status_code == 400
         assert response.json()["message"] == "Invalid image file format."

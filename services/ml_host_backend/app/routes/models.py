@@ -1,6 +1,6 @@
 from fastapi import APIRouter, File, UploadFile
 import logging
-from app.services.models_service import predict_image_classification_4_classes, list_summary_of_all_models, show_summary_of_single_model,load_model_from_google_drive
+from app.services.models_service import predict_image_classification_4_classes, list_summary_of_all_models, show_summary_of_single_model, download_model_from_google_drive
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -30,7 +30,7 @@ def download_model(model_name: str):
     Function to download a model from Google Drive.
     """
     logger.info(f"Downloading model: {model_name}")
-    load_model_from_google_drive(model_name)
+    download_model_from_google_drive(model_name)
     logger.info(f"Model {model_name} downloaded successfully.")
     return {"message": f"Model {model_name} downloaded successfully."}
 

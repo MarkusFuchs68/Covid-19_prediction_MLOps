@@ -42,7 +42,7 @@ def read_and_prepare_image(file_content):
 
     return image_array
 
-def load_list_of_models_from_google_drive():
+def get_list_of_models_from_google_drive():
     """
     Function to load a list of models from Google Drive.
     """
@@ -73,7 +73,7 @@ def load_list_of_models_from_google_drive():
     logger.debug(f"Retrieved file list: {file_list}")
     return file_list
 
-def load_model_from_google_drive(model_file_name: str):
+def download_model_from_google_drive(model_file_name: str):
     """
     Function to load a model from Google Drive.
     """
@@ -81,7 +81,7 @@ def load_model_from_google_drive(model_file_name: str):
     logger.info(f"Attempting to load model '{model_file_name}' from Google Drive.")
     logger.debug(f"Model folder: {MODEL_FOLDER}, Drive URL: {DRIVE_URL}")
 
-    file_list = load_list_of_models_from_google_drive()
+    file_list = get_list_of_models_from_google_drive()
     
     file_to_download = None
     for file in file_list:
@@ -167,7 +167,7 @@ def predict_image_classification_4_classes(model_name, file_content):
     # if already loaded, it can be skipped
     if not os.path.exists(model_path):
         logger.error(f"Model file '{model_path}' does not exist.")
-        load_model_from_google_drive(model_file_name)
+        download_model_from_google_drive(model_file_name)
 
     model = tf.keras.models.load_model(model_path)
 

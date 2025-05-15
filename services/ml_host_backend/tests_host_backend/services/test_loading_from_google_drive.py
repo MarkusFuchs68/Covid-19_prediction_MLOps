@@ -1,7 +1,7 @@
 import os
 import pytest
 from unittest.mock import patch, MagicMock
-from app.services.models_service import load_model_from_google_drive
+from app.services.models_service import download_model_from_google_drive
 from app.exceptions.service_exceptions import GoogleDriveFolderEmptyException, ModelNotFoundException
 
 @patch("app.services.models_service.gdown.download_folder")
@@ -20,7 +20,7 @@ def test_load_model_success(mock_getenv, mock_download, mock_download_folder):
     mock_download.return_value = "models/test_model.h5"
 
     # Call the function
-    result = load_model_from_google_drive("test_model.h5")
+    result = download_model_from_google_drive("test_model.h5")
 
     # Assertions
     assert result == "./data/models/test_model.h5"
@@ -40,7 +40,7 @@ def test_load_model_not_found(mock_getenv, mock_download_folder):
 
     # Call the function and expect an exception
     with pytest.raises(ModelNotFoundException, match="File 'test_model.h5' not found in the Google Drive folder."):
-        load_model_from_google_drive("test_model.h5")
+        download_model_from_google_drive("test_model.h5")
 
 @patch("app.services.models_service.gdown.download_folder")
 @patch("os.getenv")
@@ -53,4 +53,4 @@ def test_google_drive_folder_empty(mock_getenv, mock_download_folder):
 
     # Call the function and expect an exception
     with pytest.raises(GoogleDriveFolderEmptyException, match="No files found or invalid folder URL."):
-        load_model_from_google_drive("test_model.h5")
+        download_model_from_google_drive("test_model.h5")
