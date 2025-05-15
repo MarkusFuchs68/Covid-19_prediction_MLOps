@@ -1,8 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+from fastapi import APIRouter, File, UploadFile
 import logging
-from app.services.models_service import predict_image_classification_4_classes, list_summary_of_all_models
-import numpy as np
-from app.exceptions.client_exceptions import InvalidArgumentException
+from app.services.models_service import predict_image_classification_4_classes, list_summary_of_all_models, show_summary_of_single_model,load_model_from_google_drive
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -24,7 +22,17 @@ def get_summary_of_single_model(model_name: str):
     """
     Function to get details of a single model.
     """
+    return show_summary_of_single_model(model_name)
 
+@router.post("/{model_name}/download")
+def download_model(model_name: str):
+    """
+    Function to download a model from Google Drive.
+    """
+    logger.info(f"Downloading model: {model_name}")
+    load_model_from_google_drive(model_name)
+    logger.info(f"Model {model_name} downloaded successfully.")
+    return {"message": f"Model {model_name} downloaded successfully."}
 
 @router.post("/{model_name}/predict/")
 async def make_prediction_for_image(model_name: str, file: UploadFile = File(...)):
