@@ -25,7 +25,7 @@ def test_load_model_success(mock_getenv, mock_download, mock_download_folder):
     # Assertions
     assert result == "./data/models/test_model.h5"
     mock_download_folder.assert_called_once()
-    mock_download.assert_called_once_with(url='https://drive.google.com/file/d/file_id_123/view?usp=sharing', output='./data/models/test_model.h5', quiet=False)
+    mock_download.assert_called_once_with(id='file_id_123', output='./data/models/test_model.h5', quiet=False)
 
 @patch("app.services.models_service.gdown.download_folder")
 @patch("os.getenv")

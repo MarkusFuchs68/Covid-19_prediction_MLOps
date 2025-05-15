@@ -3,3 +3,5 @@ dotenv
 pillow
 gdown
 tensorflow
+numpy
+pandas
