@@ -2,7 +2,7 @@
 FROM python:3.11.9-slim AS builder
 
 # set work directory
-WORKDIR /usr/src
+WORKDIR /home/services/ml_host_backend
 
 # set up environment variables
 ENV PYTHONUNBUFFERED=1
@@ -31,7 +31,7 @@ COPY ./requirements_test.txt .
 RUN pip install -r requirements_test.txt
 # copy test folder
 COPY ./tests ./tests
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "ml_host_backendapp.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # # ----- TEST STAGE -----
 # Stages used for testing later in CI/CD pipeline
