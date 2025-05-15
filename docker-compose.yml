@@ -18,6 +18,7 @@ services:
     - "8000:8000"
 
   ml_train_hub_dev:
+    container_name: ml_train_hub_dev
     build:
       context: ./services/ml_train_hub
       dockerfile: Dockerfile
@@ -26,6 +27,7 @@ services:
     - "8001-8002:8001-8002" # MLflow server (dev=8001) and FastAPI server (dev=8002)
 
   ml_host_train_hub_test:
+    container_name: ml_train_hub_test
     build:
       context: ./services/ml_train_hub
       dockerfile: Dockerfile
@@ -44,6 +46,7 @@ services:
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
 
   ml_host_train_hub_prod:
+    container_name: ml_train_hub_prod
     build:
       context: ./services/ml_train_hub
       dockerfile: Dockerfile
