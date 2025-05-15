@@ -38,7 +38,7 @@
     COPY ./requirements_test.txt .
     RUN pip install -r requirements_test.txt
     # copy test folder
-    COPY ./tests_train_hub .
+    COPY ./tests .
     # copy startup script
     COPY ./entrypoint.sh .
     CMD ["./entrypoint.sh"]
@@ -51,8 +51,10 @@
     # copy and install test requirements
     COPY ./requirements_test.txt .
     RUN pip install -r requirements_test.txt
-    COPY ./tests_train_hub .
-    CMD ["pytest"]
+    COPY ./tests .
+    # copy startup script
+    COPY ./entrypoint_test.sh .
+    CMD ["./entrypoint_test.sh"]
 
     # # ----- PROD STAGE -----
     FROM builder AS prod
