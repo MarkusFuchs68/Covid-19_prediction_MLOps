@@ -78,10 +78,9 @@ repos:
   hooks:
     - id: pytest
       name: pytest
-      entry: ./pre-commit-pytest.sh # pytest
+      entry: ./pre-commit-pytest.sh
       language: python
-      types: [file,python]
+      types: [file, python]
       pass_filenames: false
       always_run: true
       additional_dependencies: [pytest]
-      exclude: ./services/ml_train_hub/tests/integration_test.py # requires MLFlow server run
