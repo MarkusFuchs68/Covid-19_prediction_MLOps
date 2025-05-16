@@ -11,9 +11,7 @@
     FROM python:3.11.9-slim AS builder
 
     # set work directory
-    WORKDIR /home/services/ml_train_hub
-    # This sets the project root, so import paths do work
-    ENV PYTHONPATH=/home/services
+    WORKDIR /home/services
 
     # set up environment variables
     ENV PYTHONUNBUFFERED=1
@@ -30,7 +28,7 @@
     RUN pip install -r requirements.txt
 
     # copy the services files
-    COPY ./app ./app
+    COPY ./app ./ml_train_hub/app
 
     # ----- DEV STAGE -----
     # this provides a running API and MLFlow server for local development
@@ -40,6 +38,9 @@
     ENV RUNNING_STAGE=dev
     # copy startup script
     COPY __init__.py .
+
+    # This has to be run from parent folder
+    # copy to parent folder
     COPY ./entrypoint.sh .
     CMD ["./entrypoint.sh"]
 
@@ -53,11 +54,11 @@
     COPY ./requirements_test.txt .
     RUN pip install -r requirements_test.txt
     # copy test folder
-    COPY ./tests ./tests
+    COPY ./tests ./ml_train_hub/tests
     # Add curl for the integration tests, it's used by the entrypoint script
     RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
     # copy startup script
-    COPY __init__.py .
+    COPY __init__.py ./ml_train_hub
     COPY ./entrypoint_test.sh .
     CMD ["./entrypoint_test.sh"]
 
@@ -71,5 +72,5 @@
     RUN useradd produser
     USER produser
     # copy startup script
-    COPY __init__.py .
+    COPY __init__.py ./ml_train_hub
     COPY ./entrypoint.sh .

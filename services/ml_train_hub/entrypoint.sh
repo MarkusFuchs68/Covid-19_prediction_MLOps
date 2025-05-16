@@ -20,4 +20,4 @@ echo "FastAPI will run on port $UVICORN_PORT"
 mlflow server --backend-store-uri ./mlruns --default-artifact-root ./mlruns --host 0.0.0.0 --port $MLFLOW_PORT &
 
 # Start FastAPI in the foreground
-uvicorn app.main:app --host 0.0.0.0 --port $UVICORN_PORT
+uvicorn ml_train_hub.app.main:app --host 0.0.0.0 --port $UVICORN_PORT
