@@ -17,7 +17,7 @@ echo "MLflow will run on port $MLFLOW_PORT"
 echo "FastAPI will run on port $UVICORN_PORT"
 
 # Start MLflow server in background
-mlflow server --host 0.0.0.0 --port $MLFLOW_PORT &
+mlflow server --backend-store-uri ./mlruns --default-artifact-root ./mlruns --host 0.0.0.0 --port $MLFLOW_PORT &
 
 # Start FastAPI server in background
 uvicorn app.main:app --host 0.0.0.0 --port $UVICORN_PORT &

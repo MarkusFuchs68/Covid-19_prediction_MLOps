@@ -1,18 +1,26 @@
+import logging
 import os
 from datetime import datetime
 
 import mlflow
 import mlflow.tensorflow
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+
 # set our docker container running the local MLFlow service,
 # otherwise mlflow will default to file://mlruns, which we don't want to
 stage = os.getenv("RUNNING_STAGE")
 # on which stage are we running
 if stage == "prod":
-    print("Running MLFlow server on prod port 8081")
+    logger.info("Running MLFlow server on prod port 8081")
     mlflow.set_tracking_uri("http://localhost:8081")  # prod server on port 8081
 else:
-    print("Running MLFlow server on dev/test port 8001")
+    logger.info("Running MLFlow server on dev/test port 8001")
     mlflow.set_tracking_uri("http://localhost:8001")  # dev server on port 8001
 
 
@@ -49,10 +57,11 @@ def log_mlflow_experiment(
             modelinfo = mlflow.tensorflow.log_model(
                 model=model, artifact_path=None, registered_model_name=model_name
             )
+            logger.info(f"Registered experiment with run {run_name}")
         else:  # just log the experiment
-            modelinfo = mlflow.tensorflow.log_model(
-                model=model,
-                artifact_path=None,
+            modelinfo = mlflow.tensorflow.log_model(model=model, artifact_path=None)
+            logger.info(
+                f"Registered experiment with run {run_name} and model {model_name}"
             )
         return modelinfo
 

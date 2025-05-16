@@ -60,3 +60,17 @@ Pre-Commit Hooks detect changes and will execute configured pipelines on changed
 - In most cases we build, tag and run containers through docker-compose
 - List containers <code>docker ps</code>
 - Connect to container <code>docker exec -it \<id\> sh</code> e.g. <code>docker exec -it c223c30b3fb8 sh</code>
+
+## ml_train_hub service
+- for local mlflow server, run this command from the **services/ml_train_hub** folder: <code>mlflow server --backend-store-uri ./mlruns --default-artifact-root ./mlruns --host 0.0.0.0 --port 8001</code>
+- for local mlflow server via docker: <code>docker-compose up ml_train_hub_dev</code>
+- testing:
+  - unit tests: <code>pytest</code>
+  - integration tests: <code>pytest -m integration</code>
+
+## DVC
+for our projects demo purpose, we use DVC to pragmatically store the MLFlow database files in dagshub
+initialize DVC:
+- <code>pip install dvc</code>
+- <code>pip install 'dvc[s3]'</code>
+- for access key setup, go to: https://dagshub.com/MarkusFuchs68/Covid-19_prediction_MLOps, and click on **Remote/Data/DVC** and copy the code for 'Setup credentials' and run it.
