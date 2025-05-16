@@ -1,7 +1,7 @@
 from random import random
 
 import pytest
-from ml_train_hub.app.mlflow_svc import log_mlflow_experiment
+from ml_train_hub.app.mlflow_util import log_mlflow_experiment
 from mlflow.models.model import ModelInfo
 from tensorflow.keras.models import Sequential
 

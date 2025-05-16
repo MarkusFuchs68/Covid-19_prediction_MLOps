@@ -68,3 +68,7 @@ def log_mlflow_experiment(
 
 def load_mlflow_model(model_name="Covid-19"):
     return
+
+
+def list_mlflow_models():
+    return

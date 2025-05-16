@@ -38,5 +38,5 @@ until curl -s "http://localhost:$MLFLOW_PORT" > /dev/null; do
 done
 echo "✅ MLflow is ready!"
 
-# Run tests
+# Run all tests including the integration tests
 pytest

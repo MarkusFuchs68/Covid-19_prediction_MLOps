@@ -12,6 +12,8 @@
 
     # set work directory
     WORKDIR /home/services/ml_train_hub
+    # This sets the project root, so import paths do work
+    ENV PYTHONPATH=/home/services
 
     # set up environment variables
     ENV PYTHONUNBUFFERED=1
@@ -37,6 +39,7 @@
     ENV LOG=1
     ENV RUNNING_STAGE=dev
     # copy startup script
+    COPY __init__.py .
     COPY ./entrypoint.sh .
     CMD ["./entrypoint.sh"]
 
@@ -50,11 +53,11 @@
     COPY ./requirements_test.txt .
     RUN pip install -r requirements_test.txt
     # copy test folder
-    COPY __init__.py .
     COPY ./tests ./tests
     # Add curl for the integration tests, it's used by the entrypoint script
     RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
     # copy startup script
+    COPY __init__.py .
     COPY ./entrypoint_test.sh .
     CMD ["./entrypoint_test.sh"]
 
@@ -68,4 +71,5 @@
     RUN useradd produser
     USER produser
     # copy startup script
+    COPY __init__.py .
     COPY ./entrypoint.sh .
