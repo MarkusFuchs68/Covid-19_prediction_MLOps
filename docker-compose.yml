@@ -1,15 +1,35 @@
 services:
+  ml_host_backend_test:
+    build:
+      context: ./services/ml_host_backend
+      dockerfile: Dockerfile
+      target: test
+    container_name: ml_host_backend_test
+
   ml_host_backend_dev:
     build:
       context: ./services/ml_host_backend
       dockerfile: Dockerfile
       target: dev
+    depends_on:
+      - ml_host_backend_test # Ensure tests pass before starting dev
+    container_name: ml_host_backend_dev
     ports:
     - "8000:8000"
 
-  ml_host_backend_test:
+  ml_train_hub_dev:
+    container_name: ml_train_hub_dev
     build:
-      context: ./services/ml_host_backend
+      context: ./services/ml_train_hub
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+    - "8001-8002:8001-8002" # MLflow server (dev=8001) and FastAPI server (dev=8002)
+
+  ml_train_hub_test:
+    container_name: ml_train_hub_test
+    build:
+      context: ./services/ml_train_hub
       dockerfile: Dockerfile
       target: test
 
@@ -18,6 +38,21 @@ services:
       context: ./services/ml_host_backend
       dockerfile: Dockerfile
       target: prod
+    depends_on:
+      - ml_host_backend_test # Ensure tests pass before starting prod
     ports:
     - "8080:8080"
+    container_name: ml_host_backend_prod
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+
+  ml_train_hub_prod:
+    container_name: ml_train_hub_prod
+    build:
+      context: ./services/ml_train_hub
+      dockerfile: Dockerfile
+      target: prod
+    volumes:
+      - ./mlruns:/home/services/ml_train_hub/mlruns # adapt the local folder for the prod server, where the mlruns are stored
+    ports:
+    - "8081-8082:8081-8082" # MLflow server (prod:8081) and FastAPI server (prod:8082)
+    command: ["./entrypoint.sh"]

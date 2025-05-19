@@ -161,3 +161,9 @@ cython_debug/
 
 # vscode settings folder
 .vscode/
+
+# MLFlow database
+mlruns/
+
+**/data
+.DS_Store

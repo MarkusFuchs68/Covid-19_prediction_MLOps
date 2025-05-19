@@ -2,7 +2,7 @@
 FROM python:3.11.9-slim AS builder
 
 # set work directory
-WORKDIR /usr/src/app
+WORKDIR /home/services
 
 # set up environment variables
 ENV PYTHONUNBUFFERED=1
@@ -19,7 +19,8 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # copy FastAPI app files
-COPY ./app .
+COPY ./app ./ml_host_backend/app
+COPY ./.env ./ml_host_backend
 
 # ----- DEV STAGE -----
 FROM builder AS dev
@@ -29,8 +30,8 @@ ENV LOG=1
 COPY ./requirements_test.txt .
 RUN pip install -r requirements_test.txt
 # copy test folder
-COPY ./tests .
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+COPY ./tests ./ml_host_backend/tests
+CMD ["uvicorn", "ml_host_backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # # ----- TEST STAGE -----
 # Stages used for testing later in CI/CD pipeline
@@ -40,8 +41,8 @@ ENV LOG=1
 # copy and install test requirements
 COPY ./requirements_test.txt .
 RUN pip install -r requirements_test.txt
-COPY ./tests/ .
-CMD ["pytest"]
+COPY ./tests .
+CMD ["python", "-m", "pytest"]
 
 # # ----- PROD STAGE -----
 FROM builder AS prod
