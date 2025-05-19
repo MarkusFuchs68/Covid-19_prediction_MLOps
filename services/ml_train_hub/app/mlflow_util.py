@@ -77,13 +77,15 @@ def log_mlflow_experiment(
             mlflow.log_metrics(metrics)
             if register_model:  # log experiment and register its model
                 modelinfo = mlflow.tensorflow.log_model(
-                    model=model, artifact_path=None, registered_model_name=model_name
+                    model=model, artifact_path="model", registered_model_name=model_name
                 )
                 logger.info(
                     f"Logged experiment with run {run_name} and model {model_name}"
                 )
             else:  # just log the experiment
-                modelinfo = mlflow.tensorflow.log_model(model=model, artifact_path=None)
+                modelinfo = mlflow.tensorflow.log_model(
+                    model=model, artifact_path="model"
+                )
                 logger.info(f"Logged experiment with run {run_name}")
             return modelinfo
     except Exception as e:
