@@ -9,21 +9,29 @@ from tensorflow.keras.models import Sequential
 @pytest.mark.integration
 def test_log_experiment():
     model = Sequential()  # create an empty model
-    params = {"hyperparam": "test_param"}
-    metrics = {"performance": random() * 0.29 + 0.7}
-    modelinfo = log_mlflow_experiment(params, metrics, model)
+    architecture = dict(
+        {
+            "layer0": "Conv2D(32, (3, 3), activation='relu')",
+            "layer1": "MaxPooling2D((2, 2))",
+        }
+    )
+    metrics = dict({"performance": random() * 0.29 + 0.7})
+    class_names = list(["COVID", "Lung_Opacity", "Normal", "Viral Pneumonia"])
+    modelinfo = log_mlflow_experiment(model, architecture, metrics, class_names)
     assert isinstance(modelinfo, ModelInfo)
 
 
 @pytest.mark.integration
 def test_log_experiment_and_register_model():
     model = Sequential()  # create an empty model
-    params = {"hyperparam": "test_param"}
+    architecture = {"architecture": {"layer0": "Conv2D(32, (3, 3), activation='relu')"}}
+    class_names = ["COVID", "Lung_Opacity", "Normal", "Viral Pneumonia"]
     metrics = {"performance": random() * 0.29 + 0.7}
     modelinfo = log_mlflow_experiment(
-        hyperparams=params,
-        metrics=metrics,
         model=model,
+        architecture=architecture,
+        metrics=metrics,
+        class_names=class_names,
         register_model=True,
         model_name="Test",
     )

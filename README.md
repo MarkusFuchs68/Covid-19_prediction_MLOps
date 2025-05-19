@@ -74,3 +74,4 @@ initialize DVC:
 - <code>pip install dvc</code>
 - <code>pip install 'dvc[s3]'</code>
 - for access key setup, go to: https://dagshub.com/MarkusFuchs68/Covid-19_prediction_MLOps, and click on **Remote/Data/DVC** and copy the code for 'Setup credentials' and run it.
+- <code>dvc pull<br>dvc commit<br>dvc push</code>
