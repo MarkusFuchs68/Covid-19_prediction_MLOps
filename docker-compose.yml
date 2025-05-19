@@ -25,7 +25,7 @@ services:
       dockerfile: Dockerfile
       target: dev
     volumes:
-      - ./services/ml_train_hub/mlruns:/home/services/mlruns
+      - ./services/ml_train_hub/mlruns:/home/services/ml_train_hub/mlruns
     ports:
     - "8001-8002:8001-8002" # MLflow server (dev=8001) and FastAPI server (dev=8002)
 
@@ -57,7 +57,7 @@ services:
       dockerfile: Dockerfile
       target: prod
     volumes:
-      - ./mlruns:/home/services/mlruns # adapt the local folder for the prod server, where the mlruns are stored
+      - ./mlruns:/home/services/ml_train_hub/mlruns # adapt the local folder for the prod server, where the mlruns are stored
     ports:
     - "8081-8082:8081-8082" # MLflow server (prod:8081) and FastAPI server (prod:8082)
     command: ["./entrypoint.sh"]
