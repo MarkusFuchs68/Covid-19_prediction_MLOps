@@ -38,5 +38,5 @@ until curl -s "http://localhost:$MLFLOW_PORT" > /dev/null; do
 done
 echo "✅ MLflow is ready!"
 
-# Run all tests including the integration tests and output all logger messages
-pytest -o log_cli=true -o log_cli_level=DEBUG
+# Run all tests including the integration tests and output all logger messages except DEBUG level
+pytest -o log_cli=true -o log_cli_level=INFO
