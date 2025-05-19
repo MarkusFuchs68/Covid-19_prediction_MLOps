@@ -79,12 +79,12 @@ def log_mlflow_experiment(
                 modelinfo = mlflow.tensorflow.log_model(
                     model=model, artifact_path=None, registered_model_name=model_name
                 )
-                logger.info(f"Logged experiment with run {run_name}")
-            else:  # just log the experiment
-                modelinfo = mlflow.tensorflow.log_model(model=model, artifact_path=None)
                 logger.info(
                     f"Logged experiment with run {run_name} and model {model_name}"
                 )
+            else:  # just log the experiment
+                modelinfo = mlflow.tensorflow.log_model(model=model, artifact_path=None)
+                logger.info(f"Logged experiment with run {run_name}")
             return modelinfo
     except Exception as e:
         logger.error(

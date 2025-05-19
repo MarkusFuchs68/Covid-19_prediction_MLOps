@@ -55,6 +55,9 @@ Pre-Commit Hooks detect changes and will execute configured pipelines on changed
   * --build to make sure it repeats building file after code changes
 - Execute pytest on container<code>docker-compose exec ml_host_backend_dev pytest .</code>
 - Connect to container <code>docker compose exec -it ml_host_backend_dev sh</code>
+- Run single services:
+  * <code>docker-compose up -d ml_train_hub_\<choice: dev, test, prod, <version_number>></code>
+  * <code>docker-compose up -d ml_host_backend_\<choice: dev, test, prod, <version_number>></code>
 
 ## Docker
 - In most cases we build, tag and run containers through docker-compose
