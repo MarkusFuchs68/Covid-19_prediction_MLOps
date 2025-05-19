@@ -38,6 +38,34 @@ def test_log_experiment_and_register_model():
     assert isinstance(modelinfo, ModelInfo)
 
 
+@pytest.mark.integration
+def test_list_models(test_train_hub_client):
+    """Test list models endpoint (e.g., GET /models)."""
+    response = test_train_hub_client.get("/models")
+    assert response.status_code == 200
+
+
+@pytest.mark.integration
+def test_get_model(test_train_hub_client):
+    """Test get model endpoint (e.g., GET /models/{model_name})."""
+    # Assuming "Test" is a valid model name in your MLFlow
+    response = test_train_hub_client.get("/models/Test")
+    assert response.status_code == 200
+    assert isinstance(response.json(), dict)
+    assert "name" in response.json()
+    assert response.json()["name"] == "Test"
+
+
+@pytest.mark.integration
+def test_get_model_not_found(test_train_hub_client):
+    """Test get model endpoint with a non-existent model name."""
+    response = test_train_hub_client.get("/models/NonExistentModel")
+    assert response.status_code == 404
+    assert response.json() == {
+        "message": "No versions found for model 'NonExistentModel'"
+    }
+
+
 """
 import requests
 import pandas as pd

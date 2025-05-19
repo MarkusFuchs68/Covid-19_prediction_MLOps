@@ -20,8 +20,12 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # copy the rest of the application files
-COPY ./app ./ml_train_hub/app
 COPY __init__.py ./ml_train_hub
+COPY ./app ./ml_train_hub/app
+
+# copy the evaluation dataset
+COPY ./data ./ml_train_hub/data
+
 
 # ----- DEV STAGE -----
 FROM builder AS dev
@@ -32,6 +36,7 @@ ENV RUNNING_STAGE=dev
 # Startup-script has to be run from parent folder copy to parent folder
 COPY ./entrypoint.sh .
 CMD ["./entrypoint.sh"]
+
 
 # ----- TEST STAGE -----
 FROM builder AS test
@@ -52,6 +57,7 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 # copy startup script
 COPY ./entrypoint_test.sh .
 CMD ["./entrypoint_test.sh"]
+
 
 # ----- PROD STAGE -----
 FROM builder AS prod
