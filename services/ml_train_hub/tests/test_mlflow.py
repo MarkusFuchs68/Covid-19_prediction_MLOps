@@ -1,14 +1,14 @@
+import os
 from random import random
 
 import pytest
 from ml_train_hub.app.mlflow_util import log_mlflow_experiment
 from mlflow.models.model import ModelInfo
-from tensorflow.keras.models import Sequential
 
 
 @pytest.mark.integration
 def test_log_experiment():
-    model = Sequential()  # create an empty model
+    model_filepath = os.path.join(os.path.dirname(__file__), "dummy_model.keras")
     architecture = dict(
         {
             "layer0": "Conv2D(32, (3, 3), activation='relu')",
@@ -17,18 +17,20 @@ def test_log_experiment():
     )
     metrics = dict({"performance": random() * 0.29 + 0.7})
     class_names = list(["COVID", "Lung_Opacity", "Normal", "Viral Pneumonia"])
-    modelinfo = log_mlflow_experiment(model, architecture, metrics, class_names)
+    modelinfo = log_mlflow_experiment(
+        model_filepath, architecture, metrics, class_names
+    )
     assert isinstance(modelinfo, ModelInfo)
 
 
 @pytest.mark.integration
 def test_log_experiment_and_register_model():
-    model = Sequential()  # create an empty model
+    model_filepath = os.path.join(os.path.dirname(__file__), "dummy_model.keras")
     architecture = {"architecture": {"layer0": "Conv2D(32, (3, 3), activation='relu')"}}
     class_names = ["COVID", "Lung_Opacity", "Normal", "Viral Pneumonia"]
     metrics = {"performance": random() * 0.29 + 0.7}
     modelinfo = log_mlflow_experiment(
-        model=model,
+        model_filepath=model_filepath,
         architecture=architecture,
         metrics=metrics,
         class_names=class_names,
@@ -68,10 +70,12 @@ def test_get_model_not_found(test_train_hub_client):
 
 # For debugging
 if __name__ == "__main__":
-    from fastapi.testclient import TestClient
-    from ml_train_hub.app.main import app
+    # from fastapi.testclient import TestClient
+    # from ml_train_hub.app.main import app
 
-    test_get_model(TestClient(app))
+    # test_get_model(TestClient(app))
+
+    test_log_experiment_and_register_model()
 
 
 """

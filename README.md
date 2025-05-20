@@ -66,7 +66,8 @@ Pre-Commit Hooks detect changes and will execute configured pipelines on changed
 
 ## ml_train_hub service
 - for local mlflow server, run this command from the **services/ml_train_hub** folder: <code>mlflow server --backend-store-uri ./mlruns --default-artifact-root ./mlruns --host 0.0.0.0 --port 8001</code>
-- for local mlflow server via docker: <code>docker-compose up ml_train_hub_dev</code>
+- for local fastapi server, run this command from the **services** folder: <code>uvicorn ml_train_hub.app.main:app --host 0.0.0.0 --port $UVICORN_PORT 8002</code>
+- for local mlflow + fastapi server via docker: <code>docker-compose up ml_train_hub_dev</code>
 - testing:
   - unit tests: <code>pytest</code>
   - integration tests: <code>pytest -m integration</code>

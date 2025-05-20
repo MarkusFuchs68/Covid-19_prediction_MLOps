@@ -2,12 +2,13 @@ import logging
 
 import ml_train_hub.app.exceptions.client_exceptions as ce
 import ml_train_hub.app.exceptions.service_exceptions as se
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
-from ml_train_hub.app.mlflow_util import (  # log_mlflow_experiment,
+from ml_train_hub.app.mlflow_util import (
     get_mlflow_model,
     list_mlflow_models,
+    log_mlflow_experiment,
 )
 
 # from ml_train_hub.app.model_util import evaluate_model
@@ -85,15 +86,41 @@ async def get_model(model_name: str):
 
 @app.post("/models/{model_name}/register")
 async def register_model(
-    model_name: str, class_names: str, file: UploadFile = File(...)
+    model_filepath: str,
+    model_name: str,
+    class_names: list[str],
+    experiment_name: str = "Covid_Models",
 ):
     """
-    This function evaluates the model via the evaluation set
-    and registers it in MLFlow as a new version.
+    Evaluates the model using the evaluation set and registers it in MLflow as a new version.
 
-    Params:
-    - model_name: Name, under which the model shall be registered
-    - class_names: List of human readable class names associated with the prediction index
-    - file: The model file to be uploaded
+    Args:
+    - model_filepath (str): Path to the trained model file.
+    - model_name (str): Name under which the model will be registered.
+    - class_names (list[str]): List of human-readable class names associated with the prediction indices.
+    - experiment_name (str, optional): Name of the MLflow experiment. Defaults to "Covid_Models".
+
+    Returns:
+    - dict: Contains information about the registered run (e.g., run name).
     """
-    return {"run_name": "example_run_name"}
+
+    # TODO: consider making this async, so the caller doesn't time out
+    # TODO: read architecture from model
+    architecture = dict(
+        {
+            "layer0": "Conv2D(32, (3, 3), activation='relu')",
+            "layer1": "MaxPooling2D((2, 2))",
+        }
+    )
+    # TODO: evaulate metrics with evaluation set
+    metrics = dict({"performance": 0.85})
+
+    return log_mlflow_experiment(
+        model_filepath=model_filepath,
+        architecture=architecture,
+        metrics=metrics,
+        class_names=class_names,
+        experiment_name=experiment_name,
+        register_model=True,
+        model_name=model_name,
+    )

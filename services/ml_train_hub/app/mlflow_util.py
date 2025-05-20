@@ -6,6 +6,7 @@ from datetime import datetime
 import ml_train_hub.app.exceptions.service_exceptions as se
 import mlflow
 import mlflow.tensorflow
+from tensorflow.keras.models import load_model
 
 # Configure logging
 logging.basicConfig(
@@ -34,7 +35,7 @@ else:
 
 # model experiment tracking
 def log_mlflow_experiment(
-    model,
+    model_filepath,
     architecture,
     metrics,
     class_names,
@@ -47,7 +48,7 @@ def log_mlflow_experiment(
     It is possible to register the according model as well.
 
     parameters:
-    - model: the model itself
+    - model_filepath: the path to the model file itself
     - architecture: a dictionary with the architecture of the model
     - metrics: a dictionary with the metrics of the model
     - class_names: list of human readable class names associated with the prediction index
@@ -68,6 +69,18 @@ def log_mlflow_experiment(
         logger.error(f"Error restoring experiment '{experiment_name}': {e}")
         raise se.RegisterModelException(
             f"Failed to restore experiment '{experiment_name}': {e}"
+        ) from e
+
+    # Load the model from the specified file
+    logger.info(f"Loading TensorFlow model from {model_filepath}")
+    try:
+        # Load using mlflow.tensorflow (alternative to tensorflow native, saves an import)
+        model = load_model(model_filepath)
+        logger.info(f"Loaded TensorFlow model from {model_filepath}")
+    except Exception as e:
+        logger.error(f"Failed to load model from {model_filepath}: {e}")
+        raise se.RegisterModelException(
+            f"Failed to load model from '{model_filepath}': {e}"
         ) from e
 
     # Now register the new experiment
@@ -236,18 +249,4 @@ def list_mlflow_models():
 
 # For debugging
 if __name__ == "__main__":
-    # get_mlflow_model("Test")
-    from random import random
-
-    from tensorflow.keras.models import Sequential
-
-    model = Sequential()  # create an empty model
-    architecture = dict(
-        {
-            "layer0": "Conv2D(32, (3, 3), activation='relu')",
-            "layer1": "MaxPooling2D((2, 2))",
-        }
-    )
-    metrics = dict({"performance": random() * 0.29 + 0.7})
-    class_names = list(["COVID", "Lung_Opacity", "Normal", "Viral Pneumonia"])
-    modelinfo = log_mlflow_experiment(model, architecture, metrics, class_names)
+    get_mlflow_model("Test")
