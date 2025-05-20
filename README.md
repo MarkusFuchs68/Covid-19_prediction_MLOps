@@ -64,6 +64,13 @@ Pre-Commit Hooks detect changes and will execute configured pipelines on changed
 - List containers <code>docker ps</code>
 - Connect to container <code>docker exec -it \<id\> sh</code> e.g. <code>docker exec -it c223c30b3fb8 sh</code>
 
+## Colima
+you can use an alternative to docker desktop on Mac in order to improve docker performance:
+- <code>brew install colima</code> (install colima using Homebrew)
+- <code>colima start</code> (start colima and substitute docker daemon)
+- \<use your docker commands as usual>
+- <code>colima stop</code> (shut down and switch back to normal docker daemon)
+
 ## ml_train_hub service
 - for local mlflow server, run this command from the **services/ml_train_hub** folder: <code>mlflow server --backend-store-uri ./mlruns --default-artifact-root ./mlruns --host 0.0.0.0 --port 8001</code>
 - for local fastapi server, run this command from the **services** folder: <code>uvicorn ml_train_hub.app.main:app --host 0.0.0.0 --port $UVICORN_PORT 8002</code>
@@ -81,10 +88,3 @@ initialize DVC:
 - <code>pip install 'dvc[s3]'</code>
 - for access key setup, go to: https://dagshub.com/MarkusFuchs68/Covid-19_prediction_MLOps, and click on **Remote/Data/DVC** and copy the code for 'Setup credentials' and run it.
 - <code>dvc pull<br>dvc commit<br>dvc push</code>
-
-## Colima
-you can use an alternative to docker desktop on Mac in order to improve docker performance:
-- <code>brew install colima</code> (install colima using Homebrew)
-- <code>colima start</code> (start colima and substitute docker daemon)
-- \<use your docker commands as usual>
-- <code>colima stop</code> (shut down and switch back to normal docker daemon)
