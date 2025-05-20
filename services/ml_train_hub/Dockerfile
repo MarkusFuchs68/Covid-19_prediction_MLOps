@@ -23,14 +23,14 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential && \
     rm -rf /var/lib/apt/lists/*
 
+# copy the evaluation dataset
+COPY ./data ./data
+
 # copy only requirements.txt first to leverage caching
 COPY ./requirements.txt .
 
 # install packages and requirements
 RUN pip install --upgrade pip && pip install -r requirements.txt
-
-# copy the evaluation dataset
-COPY ./data ./data
 
 # copy the rest of the application files
 COPY __init__.py .
@@ -54,12 +54,12 @@ FROM builder AS test
 ENV LOG=1
 ENV RUNNING_STAGE=test
 
+# Add curl for the integration tests, it's used by the entrypoint script
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # copy and install test requirements
 COPY ./requirements_test.txt .
 RUN pip install -r requirements_test.txt
-
-# Add curl for the integration tests, it's used by the entrypoint script
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # copy test folder
 COPY ./tests ./tests
