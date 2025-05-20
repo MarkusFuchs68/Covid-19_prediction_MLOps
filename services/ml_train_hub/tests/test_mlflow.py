@@ -66,6 +66,14 @@ def test_get_model_not_found(test_train_hub_client):
     }
 
 
+# For debugging
+if __name__ == "__main__":
+    from fastapi.testclient import TestClient
+    from ml_train_hub.app.main import app
+
+    test_get_model(TestClient(app))
+
+
 """
 import requests
 import pandas as pd

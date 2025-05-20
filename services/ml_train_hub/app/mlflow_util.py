@@ -14,6 +14,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+# Some definitions
+artifact_path = (
+    "model"  # This is the subdirectory, in which we store model artifact files
+)
+
+
 # set our docker container running the local MLFlow service,
 # otherwise mlflow will default to file://mlruns, which we don't want to
 stage = os.getenv("RUNNING_STAGE")
@@ -77,14 +83,16 @@ def log_mlflow_experiment(
             mlflow.log_metrics(metrics)
             if register_model:  # log experiment and register its model
                 modelinfo = mlflow.tensorflow.log_model(
-                    model=model, artifact_path="model", registered_model_name=model_name
+                    model=model,
+                    artifact_path=artifact_path,
+                    registered_model_name=model_name,
                 )
                 logger.info(
                     f"Logged experiment with run {run_name} and model {model_name}"
                 )
             else:  # just log the experiment
                 modelinfo = mlflow.tensorflow.log_model(
-                    model=model, artifact_path="model"
+                    model=model, artifact_path=artifact_path
                 )
                 logger.info(f"Logged experiment with run {run_name}")
             return modelinfo
@@ -105,7 +113,9 @@ def get_model_path(client, run):
         client: MLflow client, connected to the MLFlow server
         run_id (str): ID of the run to inspect
     """
-    artifacts = client.list_artifacts(run.info.run_id)
+    artifacts = client.list_artifacts(
+        run.info.run_id, artifact_path
+    )  # we search in the same folder as stored
     for artifact in artifacts:
         if artifact.is_dir:
             nested_artifacts = client.list_artifacts(run.info.run_id, artifact.path)
