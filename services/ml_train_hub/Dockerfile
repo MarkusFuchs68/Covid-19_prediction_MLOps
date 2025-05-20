@@ -17,6 +17,8 @@ ENV PYTHONPATH=/home/services
 # set up environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+# to surpress annoying cache size message, when using colima docker daemon
+ENV OPENBLAS_VERBOSE=0
 
 # dependencies for building Python packages
 RUN apt-get update && \

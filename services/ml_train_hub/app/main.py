@@ -95,7 +95,7 @@ async def register_model(
     Evaluates the model using the evaluation set and registers it in MLflow as a new version.
 
     Args:
-    - model_filepath (str): Path to the trained model file.
+    - model_filepath (str): Path to the trained model file. Note: docker container shares folder 'file_exchange', put your model files into file_exchange and specify e.g. 'file_exchange/my_model.keras'. Only *.keras model files are supported!
     - model_name (str): Name under which the model will be registered.
     - class_names (list[str]): List of human-readable class names associated with the prediction indices.
     - experiment_name (str, optional): Name of the MLflow experiment. Defaults to "Covid_Models".
