@@ -60,3 +60,14 @@ Pre-Commit Hooks detect changes and will execute configured pipelines on changed
 - In most cases we build, tag and run containers through docker-compose
 - List containers <code>docker ps</code>
 - Connect to container <code>docker exec -it \<id\> sh</code> e.g. <code>docker exec -it c223c30b3fb8 sh</code>
+
+## Logging
+Setup:
+- Python custom package microlog to share common logging behaviour and settings in one place
+- microservices log to stdout
+- ship stdout logs with Filebeat to ElasticSearch
+- parse shipped logs in Elasticsearch
+- visualize logs in Kibana.
+
+## Monitoring
+- TBD
