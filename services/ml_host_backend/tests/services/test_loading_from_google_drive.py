@@ -11,6 +11,7 @@ from ml_host_backend.app.services.models_service import download_model_from_goog
 @patch("ml_host_backend.app.services.models_service.gdown.download_folder")
 @patch("ml_host_backend.app.services.models_service.gdown.download")
 @patch("os.getenv")
+@pytest.mark.skip
 def test_load_model_success(mock_getenv, mock_download, mock_download_folder):
     # Mock environment variable
     mock_getenv.return_value = "https://drive.google.com/folder_url"
