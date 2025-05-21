@@ -17,10 +17,10 @@ echo "MLflow will run on port $MLFLOW_PORT"
 echo "FastAPI will run on port $UVICORN_PORT"
 
 # Start MLflow server in background
-mlflow server --host 0.0.0.0 --port $MLFLOW_PORT &
+mlflow server --backend-store-uri ./mlruns --default-artifact-root ./mlruns --host 0.0.0.0 --port $MLFLOW_PORT &
 
 # Start FastAPI server in background
-uvicorn app.main:app --host 0.0.0.0 --port $UVICORN_PORT &
+uvicorn ml_train_hub.app.main:app --host 0.0.0.0 --port $UVICORN_PORT &
 
 # Wait for FastAPI (Uvicorn) server
 echo "Waiting for Uvicorn server to be ready..."
@@ -38,5 +38,5 @@ until curl -s "http://localhost:$MLFLOW_PORT" > /dev/null; do
 done
 echo "✅ MLflow is ready!"
 
-# Run tests
-pytest
+# Run all tests including the integration tests and output all logger messages except DEBUG level
+pytest -o log_cli=true -o log_cli_level=INFO

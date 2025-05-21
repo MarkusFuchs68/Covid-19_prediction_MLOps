@@ -8,64 +8,78 @@
 # prod: docker run -d --rm -p 8081-8082:8081-8082 -v ./mlruns:/home/services/ml_train_hub/mlruns --name ml_train_hub_prod ml_train_hub:<version_number> ./entrypoint.sh
 
 # ----- BASE BUILD STAGE -----
-    FROM python:3.11.9-slim AS builder
+FROM python:3.11.9-slim AS builder
 
-    # set work directory
-    WORKDIR /home/services/ml_train_hub
+# set work directory
+WORKDIR /home/services/ml_train_hub
+ENV PYTHONPATH=/home/services
 
-    # set up environment variables
-    ENV PYTHONUNBUFFERED=1
-    ENV PYTHONDONTWRITEBYTECODE=1
+# set up environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+# to surpress annoying cache size message, when using colima docker daemon
+ENV OPENBLAS_VERBOSE=0
 
-    RUN apt-get update \
-        # dependencies for building Python packages
-        && apt-get install -y build-essential
+# dependencies for building Python packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential && \
+    rm -rf /var/lib/apt/lists/*
 
-    # copy project packages and requirements
-    COPY ./requirements.txt .
-    # install packages and requirements
-    RUN pip install --upgrade pip
-    RUN pip install -r requirements.txt
+# copy the evaluation dataset
+COPY ./data ./data
 
-    # copy the services files
-    COPY ./app ./app
+# copy only requirements.txt first to leverage caching
+COPY ./requirements.txt .
 
-    # ----- DEV STAGE -----
-    # this provides a running API and MLFlow server for local development
-    FROM builder AS dev
-    # setup env vars
-    ENV LOG=1
-    ENV RUNNING_STAGE=dev
-    # copy startup script
-    COPY ./entrypoint.sh .
-    CMD ["./entrypoint.sh"]
+# install packages and requirements
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-    # # ----- TEST STAGE -----
-    # Stages used for testing later in CI/CD pipeline
-    FROM builder AS test
-    # setup env vars
-    ENV LOG=1
-    ENV RUNNING_STAGE=test
-    # copy and install test requirements
-    COPY ./requirements_test.txt .
-    RUN pip install -r requirements_test.txt
-    # copy test folder
-    COPY __init__.py .
-    COPY ./tests ./tests
-    # Add curl for the integration tests, it's used by the entrypoint script
-    RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-    # copy startup script
-    COPY ./entrypoint_test.sh .
-    CMD ["./entrypoint_test.sh"]
+# copy the rest of the application files
+COPY __init__.py .
+COPY ./app ./app
 
-    # # ----- PROD STAGE -----
-    FROM builder AS prod
-    # usually you would copy app files, but for here we just copy test files
-    # setup env vars
-    ENV LOG=0
-    ENV RUNNING_STAGE=prod
-    # create a non-root user and switch to it
-    RUN useradd produser
-    USER produser
-    # copy startup script
-    COPY ./entrypoint.sh .
+
+# ----- DEV STAGE -----
+FROM builder AS dev
+# setup env vars
+ENV LOG=1
+ENV RUNNING_STAGE=dev
+
+# Startup-script has to be run from parent folder copy to parent folder
+COPY ./entrypoint.sh .
+CMD ["./entrypoint.sh"]
+
+
+# ----- TEST STAGE -----
+FROM builder AS test
+# setup env vars
+ENV LOG=1
+ENV RUNNING_STAGE=test
+
+# Add curl for the integration tests, it's used by the entrypoint script
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# copy and install test requirements
+COPY ./requirements_test.txt .
+RUN pip install -r requirements_test.txt
+
+# copy test folder
+COPY ./tests ./tests
+
+# copy startup script
+COPY ./entrypoint_test.sh .
+CMD ["./entrypoint_test.sh"]
+
+
+# ----- PROD STAGE -----
+FROM builder AS prod
+# setup env vars
+ENV LOG=0
+ENV RUNNING_STAGE=prod
+
+# create a non-root user and switch to it
+RUN useradd produser
+USER produser
+
+# copy startup script
+COPY ./entrypoint.sh .

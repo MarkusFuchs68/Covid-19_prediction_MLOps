@@ -19,15 +19,20 @@ services:
 
   ml_train_hub_dev:
     container_name: ml_train_hub_dev
+    image: ml_train_hub:dev #  👈 This sets the name and tag
     build:
       context: ./services/ml_train_hub
       dockerfile: Dockerfile
       target: dev
+    volumes:
+      - ./services/ml_train_hub/mlruns:/home/services/ml_train_hub/mlruns
+      - ./services/ml_train_hub/file_exchange:/home/services/ml_train_hub/file_exchange # adapt the local folder for the prod server, how files shall be exchanged
     ports:
     - "8001-8002:8001-8002" # MLflow server (dev=8001) and FastAPI server (dev=8002)
 
   ml_train_hub_test:
     container_name: ml_train_hub_test
+    image: ml_train_hub:test #  👈 This sets the name and tag
     build:
       context: ./services/ml_train_hub
       dockerfile: Dockerfile
@@ -47,12 +52,14 @@ services:
 
   ml_train_hub_prod:
     container_name: ml_train_hub_prod
+    image: ml_train_hub:prod #  👈 This sets the name and tag, consider version numbers from ENV variable
     build:
       context: ./services/ml_train_hub
       dockerfile: Dockerfile
       target: prod
     volumes:
       - ./mlruns:/home/services/ml_train_hub/mlruns # adapt the local folder for the prod server, where the mlruns are stored
+      - ./file_exchange:/home/services/ml_train_hub/file_exchange # adapt the local folder for the prod server, how files shall be exchanged
     ports:
     - "8081-8082:8081-8082" # MLflow server (prod:8081) and FastAPI server (prod:8082)
     command: ["./entrypoint.sh"]

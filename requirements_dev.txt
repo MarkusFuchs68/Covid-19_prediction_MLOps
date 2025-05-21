@@ -1,5 +1,7 @@
 # linters and code formatters
 black
+dvc
+dvc[s3]
 flake8
 isort
 pre-commit
