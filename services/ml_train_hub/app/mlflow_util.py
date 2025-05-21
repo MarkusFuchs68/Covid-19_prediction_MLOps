@@ -116,7 +116,7 @@ def log_mlflow_experiment(
         ) from e
 
 
-def log_metrics_and_architecture(modelinfo: ModelInfo):
+def log_metrics_and_architecture(modelinfo: ModelInfo, class_names: list):
     """
     Background task, which calculates model performance from the evaluation dataset
     and gets model architecture and logs this to the registered experiment identified by the run_id
@@ -137,7 +137,7 @@ def log_metrics_and_architecture(modelinfo: ModelInfo):
         logger.info(
             f"Successfully calculated model architecture for model_uri '{modelinfo.model_uri}'"
         )
-        metrics = evaluate_model(model)
+        metrics = evaluate_model(model, class_names)
         logger.info(
             f"Successfully evaluated model metrics for model_uri '{modelinfo.model_uri}'."
         )
@@ -244,6 +244,7 @@ def get_mlflow_model(model_name):
         "name": model_name,
         "version": latest_version.version,
         "model_filepath": model_path,  # this is an absolute path matching our docker container file structure
+        "model_uri": latest_version.source,
         "status": latest_version.status,
         "architecture": params.get("architecture", None),
         "class_names": params.get("class_names", None),

@@ -120,7 +120,7 @@ async def register_model(
     # If until here no exception occurred, the model is registered successfully
     # In a background task start the evaluation of the model, which adds additional data to it.
     # This takes some time, hence we let this do in a background task.
-    background_tasks.add_task(log_metrics_and_architecture, modelinfo)
+    background_tasks.add_task(log_metrics_and_architecture, modelinfo, class_names)
     logger.info(
         f"Triggered background process for model architecture and metrics for run_id: {modelinfo.run_id}"
     )
