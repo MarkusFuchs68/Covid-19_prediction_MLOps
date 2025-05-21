@@ -33,11 +33,16 @@ pip install -r requirements_dev.txt
 - Push changes: <code>git push</code>
 - Merge branch: <code>git merge \<branch_name\></code>
 
+## Pytest
+- ml_host_backend: <code>pytest services/ml_host_backend/</code>
+- ml_train_hub: <code>pytest services/ml_train_hub/</code>
 
 ### Pre-Commit Hooks
 Pre-Commit Hooks allow us to automatize (and force) best practices, coding standards, etc. for the entire team. All configurations are centralized in this file: <code>.pre-commit-config.yaml</code>.
 
 Pre-Commit Hooks detect changes and will execute configured pipelines on changed files. If you want to run pre-commit hooks on the entire directory run: <code>pre-commit run --all</code> in your active python environment (terminal)
+
+- TODO: reconsider reworking pytest implementation in pre-commit hooks.
 
 #### Setup
 - In terminal with active venv type: <code>pre-commit install</code>
@@ -53,6 +58,7 @@ Pre-Commit Hooks detect changes and will execute configured pipelines on changed
 - <code>docker-compose up -d --build</code>
   * -d to run in detached mode
   * --build to make sure it repeats building file after code changes
+- <code>docker-compose -f docker.compose.dev.yml up -d</code>
 - Execute pytest on container<code>docker-compose exec ml_host_backend_dev pytest .</code>
 - Connect to container <code>docker compose exec -it ml_host_backend_dev sh</code>
 - Run single services:
