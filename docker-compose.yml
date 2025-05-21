@@ -6,30 +6,6 @@ services:
       target: test
     container_name: ml_host_backend_test
 
-  ml_host_backend_dev:
-    build:
-      context: ./services/ml_host_backend
-      dockerfile: Dockerfile
-      target: dev
-    depends_on:
-      - ml_host_backend_test # Ensure tests pass before starting dev
-    container_name: ml_host_backend_dev
-    ports:
-    - "8000:8000"
-
-  ml_train_hub_dev:
-    container_name: ml_train_hub_dev
-    image: ml_train_hub:dev #  👈 This sets the name and tag
-    build:
-      context: ./services/ml_train_hub
-      dockerfile: Dockerfile
-      target: dev
-    volumes:
-      - ./services/ml_train_hub/mlruns:/home/services/ml_train_hub/mlruns
-      - ./services/ml_train_hub/file_exchange:/home/services/ml_train_hub/file_exchange # adapt the local folder for the prod server, how files shall be exchanged
-    ports:
-    - "8001-8002:8001-8002" # MLflow server (dev=8001) and FastAPI server (dev=8002)
-
   ml_train_hub_test:
     container_name: ml_train_hub_test
     image: ml_train_hub:test #  👈 This sets the name and tag
@@ -57,6 +33,8 @@ services:
       context: ./services/ml_train_hub
       dockerfile: Dockerfile
       target: prod
+    depends_on:
+      - ml_train_hub_test # Ensure tests pass before starting prod
     volumes:
       - ./mlruns:/home/services/ml_train_hub/mlruns # adapt the local folder for the prod server, where the mlruns are stored
       - ./file_exchange:/home/services/ml_train_hub/file_exchange # adapt the local folder for the prod server, how files shall be exchanged

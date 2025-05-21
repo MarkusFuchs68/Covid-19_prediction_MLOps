@@ -1,0 +1,27 @@
+services:
+  ml_host_backend_dev:
+    build:
+      context: ./services/ml_host_backend
+      dockerfile: Dockerfile
+      target: dev
+    container_name: ml_host_backend_dev
+    depends_on:
+      - ml_train_hub_dev
+    env_file:
+      - ./.envs/.ml_host_backend
+      - ./.envs/.env
+    ports:
+    - "8000:8000"
+
+  ml_train_hub_dev:
+    container_name: ml_train_hub_dev
+    image: ml_train_hub:dev #  👈 This sets the name and tag
+    build:
+      context: ./services/ml_train_hub
+      dockerfile: Dockerfile
+      target: dev
+    volumes:
+      - ./services/ml_train_hub/mlruns:/home/services/ml_train_hub/mlruns
+      - ./services/ml_train_hub/file_exchange:/home/services/ml_train_hub/file_exchange # adapt the local folder for the prod server, how files shall be exchanged
+    ports:
+    - "8001-8002:8001-8002" # MLflow server (dev=8001) and FastAPI server (dev=8002)
