@@ -1,8 +1,1 @@
-dotenv
-gdown
-numpy
-pandas
-pillow
 pytest~=8.3.5
-requests
-tensorflow
