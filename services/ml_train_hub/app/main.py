@@ -2,16 +2,15 @@ import logging
 
 import ml_train_hub.app.exceptions.client_exceptions as ce
 import ml_train_hub.app.exceptions.service_exceptions as se
-from fastapi import FastAPI
+from fastapi import BackgroundTasks, FastAPI
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from ml_train_hub.app.mlflow_util import (
     get_mlflow_model,
     list_mlflow_models,
+    log_metrics_and_architecture,
     log_mlflow_experiment,
 )
-
-# from ml_train_hub.app.model_util import evaluate_model
 
 # Configure logging
 logging.basicConfig(
@@ -89,7 +88,8 @@ async def register_model(
     model_filepath: str,
     model_name: str,
     class_names: list[str],
-    experiment_name: str = "Covid_Models",
+    experiment_name: str,
+    background_tasks: BackgroundTasks,
 ):
     """
     Evaluates the model using the evaluation set and registers it in MLflow as a new version.
@@ -98,29 +98,32 @@ async def register_model(
     - model_filepath (str): Path to the trained model file. Note: docker container shares folder 'file_exchange', put your model files into file_exchange and specify e.g. 'file_exchange/my_model.keras'. Only *.keras model files are supported!
     - model_name (str): Name under which the model will be registered.
     - class_names (list[str]): List of human-readable class names associated with the prediction indices.
-    - experiment_name (str, optional): Name of the MLflow experiment. Defaults to "Covid_Models".
+    - experiment_name (str): Name of the MLflow experiment. If empty, it defaults to "Covid_Models".
 
     Returns:
     - dict: Contains information about the registered run (e.g., run name).
     """
 
-    # TODO: consider making this async, so the caller doesn't time out
-    # TODO: read architecture from model
-    architecture = dict(
-        {
-            "layer0": "Conv2D(32, (3, 3), activation='relu')",
-            "layer1": "MaxPooling2D((2, 2))",
-        }
-    )
-    # TODO: evaulate metrics with evaluation set
-    metrics = dict({"performance": 0.85})
+    # Optionally default to our standard experiment_name
+    if experiment_name and experiment_name == "":
+        experiment_name = "Covid_Models"
 
-    return log_mlflow_experiment(
+    # First register our model in a synchronous call (takes a few seconds)
+    modelinfo = log_mlflow_experiment(
         model_filepath=model_filepath,
-        architecture=architecture,
-        metrics=metrics,
         class_names=class_names,
         experiment_name=experiment_name,
         register_model=True,
         model_name=model_name,
     )
+
+    # If until here no exception occurred, the model is registered successfully
+    # In a background task start the evaluation of the model, which adds additional data to it.
+    # This takes some time, hence we let this do in a background task.
+    background_tasks.add_task(log_metrics_and_architecture, modelinfo)
+    logger.info(
+        f"Triggered background process for model architecture and metrics for run_id: {modelinfo.run_id}"
+    )
+
+    # Don't wait for this, just return the registered modelinfo to the caller
+    return modelinfo

@@ -6,6 +6,8 @@ from datetime import datetime
 import ml_train_hub.app.exceptions.service_exceptions as se
 import mlflow
 import mlflow.tensorflow
+from ml_train_hub.app.model_util import evaluate_model, get_model_architecture
+from mlflow.models.model import ModelInfo
 from tensorflow.keras.models import load_model
 
 # Configure logging
@@ -36,8 +38,6 @@ else:
 # model experiment tracking
 def log_mlflow_experiment(
     model_filepath,
-    architecture,
-    metrics,
     class_names,
     experiment_name="Covid_Models",
     register_model=False,
@@ -74,7 +74,7 @@ def log_mlflow_experiment(
     # Load the model from the specified file
     logger.info(f"Loading TensorFlow model from {model_filepath}")
     try:
-        # Load using mlflow.tensorflow (alternative to tensorflow native, saves an import)
+        # Load model
         model = load_model(model_filepath)
         logger.info(f"Loaded TensorFlow model from {model_filepath}")
     except Exception as e:
@@ -91,9 +91,7 @@ def log_mlflow_experiment(
         run_name = "run_" + datetime.now().strftime("%Y%m%d_%H%M%S")
 
         with mlflow.start_run(run_name=run_name):
-            mlflow.log_param("architecture", architecture)
             mlflow.log_param("class_names", class_names)  # convert list to json format
-            mlflow.log_metrics(metrics)
             if register_model:  # log experiment and register its model
                 modelinfo = mlflow.tensorflow.log_model(
                     model=model,
@@ -116,6 +114,47 @@ def log_mlflow_experiment(
         raise se.RegisterModelException(
             f"Failed to register model '{model_name}' in MLFlow: {e}"
         ) from e
+
+
+def log_metrics_and_architecture(modelinfo: ModelInfo):
+    """
+    Background task, which calculates model performance from the evaluation dataset
+    and gets model architecture and logs this to the registered experiment identified by the run_id
+    """
+    logger.info(
+        f"Background process started: Architecture and model metrics evaluation for run ID '{modelinfo.run_id}'"
+    )
+    try:
+        # Load the model from MLFlow with the information from modelinfo
+        # model_uri = f"runs:/{modelinfo.run_id}/{artifact_path}"
+        model = mlflow.tensorflow.load_model(modelinfo.model_uri)
+        logger.info(
+            f"Successfully loaded model from MLFlow model_uri '{modelinfo.model_uri}' for calculations"
+        )
+
+        # Calculate our data
+        architecture = get_model_architecture(model)
+        logger.info(
+            f"Successfully calculated model architecture for model_uri '{modelinfo.model_uri}'"
+        )
+        metrics = evaluate_model(model)
+        logger.info(
+            f"Successfully evaluated model metrics for model_uri '{modelinfo.model_uri}'."
+        )
+
+        # Add the architecture and the metrics to the models experiment run
+        with mlflow.start_run(run_id=modelinfo.run_id):
+            mlflow.log_param("architecture", architecture)
+            mlflow.log_metrics(metrics)
+
+    except Exception as e:
+        logger.error(
+            f"Background process error: Architecture and model metrics evaluation for run ID '{modelinfo.run_id}': {e}"
+        )
+    finally:
+        logger.info(
+            f"Background process finished: Architecture and model metrics evaluation for run ID '{modelinfo.run_id}'"
+        )
 
 
 def get_model_path(client, run):
