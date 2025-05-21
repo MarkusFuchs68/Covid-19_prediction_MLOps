@@ -165,5 +165,12 @@ cython_debug/
 # MLFlow database
 mlruns/
 
-**/data
 .DS_Store
+
+# data mostly used in local services but required for setup
+data/*
+!data/.gitkeep
+
+# certification files
+certs/*
+!certs/.gitkeep

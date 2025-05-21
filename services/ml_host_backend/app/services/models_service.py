@@ -6,7 +6,6 @@ import gdown
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from dotenv import load_dotenv
 from ml_host_backend.app.exceptions.client_exceptions import InvalidArgumentException
 from ml_host_backend.app.exceptions.service_exceptions import (
     GoogleDriveDownloadException,
@@ -22,8 +21,6 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
-
-load_dotenv()
 
 MODEL_FOLDER = os.path.join(".", "data/models")
 DRIVE_URL = os.getenv("GOOGLE_DRIVE_URL")

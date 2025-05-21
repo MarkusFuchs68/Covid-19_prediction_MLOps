@@ -60,7 +60,7 @@ Pre-Commit Hooks detect changes and will execute configured pipelines on changed
 - Prod enviroment including test pipeline:<code>docker-compose up -d --build</code>
   * -d to run in detached mode
   * --build to make sure it repeats building file after code changes
-- Local environments: <code>docker-compose -f docker-compose.dev.yml up -d</code>
+- Local environments: <code>docker compose --env-file .envs/.compose -f docker-compose.dev.yml up -d</code>
 - All in one cmd: <code>docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d</code>
 - Execute pytest on container<code>docker-compose exec ml_host_backend_dev pytest .</code>
 - Connect to container <code>docker compose exec -it ml_host_backend_dev sh</code>
