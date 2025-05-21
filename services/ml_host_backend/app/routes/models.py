@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, File, UploadFile
 from ml_host_backend.app.services.models_service import (
-    download_model_from_google_drive,
+    download_latest_model_version,
     list_summary_of_all_models,
     predict_image_classification_4_classes,
     show_summary_of_single_model,
@@ -38,10 +38,10 @@ def get_summary_of_single_model(model_name: str):
 @router.post("/{model_name}/download")
 def download_model(model_name: str):
     """
-    Function to download a model from Google Drive.
+    Function to download a model
     """
     logger.info(f"Downloading model: {model_name}")
-    download_model_from_google_drive(model_name)
+    download_latest_model_version(model_name)
     logger.info(f"Model {model_name} downloaded successfully.")
     return {"message": f"Model {model_name} downloaded successfully."}
 

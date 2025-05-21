@@ -1,7 +1,8 @@
-pytest~=8.3.5
 dotenv
-pillow
 gdown
-tensorflow
 numpy
 pandas
+pillow
+pytest~=8.3.5
+requests
+tensorflow

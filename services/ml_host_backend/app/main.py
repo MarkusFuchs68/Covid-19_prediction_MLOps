@@ -11,13 +11,11 @@ app = FastAPI()
 async def handle_invalid_argument_eception(
     request: Request, exception: InvalidArgumentException
 ):
-    print("here1")
     return JSONResponse(status_code=400, content={"message": exception.message})
 
 
 @app.exception_handler(ModelNotFoundException)
 async def handle_model_not_found(request: Request, exception: ModelNotFoundException):
-    print("here")
     return JSONResponse(status_code=404, content={"message": exception.message})
 
 

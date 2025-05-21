@@ -5,11 +5,13 @@ from ml_host_backend.app.exceptions.service_exceptions import (
     GoogleDriveFolderEmptyException,
     ModelNotFoundException,
 )
-from ml_host_backend.app.services.models_service import download_model_from_google_drive
+from ml_host_backend.app.services.google_drive_service import (
+    download_model_from_google_drive,
+)
 
 
-@patch("ml_host_backend.app.services.models_service.gdown.download_folder")
-@patch("ml_host_backend.app.services.models_service.gdown.download")
+@patch("ml_host_backend.app.services.google_drive_service.gdown.download_folder")
+@patch("ml_host_backend.app.services.google_drive_service.gdown.download")
 @patch("os.getenv")
 def test_load_model_success(mock_getenv, mock_download, mock_download_folder):
     # Mock environment variable
@@ -34,7 +36,7 @@ def test_load_model_success(mock_getenv, mock_download, mock_download_folder):
     )
 
 
-@patch("ml_host_backend.app.services.models_service.gdown.download_folder")
+@patch("ml_host_backend.app.services.google_drive_service.gdown.download_folder")
 @patch("os.getenv")
 def test_load_model_not_found(mock_getenv, mock_download_folder):
     # Mock environment variable
@@ -53,7 +55,7 @@ def test_load_model_not_found(mock_getenv, mock_download_folder):
         download_model_from_google_drive("test_model.h5")
 
 
-@patch("ml_host_backend.app.services.models_service.gdown.download_folder")
+@patch("ml_host_backend.app.services.google_drive_service.gdown.download_folder")
 @patch("os.getenv")
 def test_google_drive_folder_empty(mock_getenv, mock_download_folder):
     # Mock environment variable

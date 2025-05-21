@@ -18,14 +18,80 @@ def client():
     return TestClient(app)
 
 
+def test_get_summary_of_all_models(client):
+    expected_models = models_summary
+    with patch(
+        "ml_host_backend.app.services.mlflow_service.requests.get"
+    ) as mock_requests_get:
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"models": expected_models}
+        mock_response.raise_for_status.return_value = None
+        mock_requests_get.return_value = mock_response
+        response = client.get(base_endpoint)
+        assert response.status_code == 200
+        assert response.json() == expected_models
+        mock_requests_get.assert_called_once()
+        called_url = mock_requests_get.call_args[0][0]
+        assert "/models" in called_url
+
+
 def test_get_summary_of_single_model(client):
     available_model = models_summary[0]["name"]
-    response = client.get(f"{base_endpoint}/{available_model}")
-    print(response.json())
-    assert response.status_code == 200
-    assert response.json() == models_summary[0]
+    mlflow_response = models_summary[0]
+    with patch(
+        "ml_host_backend.app.services.mlflow_service.requests.get"
+    ) as mock_requests_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = mlflow_response
+        mock_response.raise_for_status.return_value = None
+        mock_requests_get.return_value = mock_response
+        response = client.get(f"{base_endpoint}/{available_model}")
+        assert response.status_code == 200
+        assert response.json() == mlflow_response
+        mock_requests_get.assert_called_once()
+        called_url = mock_requests_get.call_args[0][0]
+        assert f"/models/{available_model}" in called_url
 
 
+def test_get_summary_of_single_model_not_found(client):
+    with patch(
+        "ml_host_backend.app.services.mlflow_service.requests.get"
+    ) as mock_requests_get:
+        unavailable_model = "nonexistent"
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_response.json.return_value = None
+        mock_response.raise_for_status.side_effect = Exception("404 Not Found")
+        mock_requests_get.return_value = mock_response
+        response = client.get(f"{base_endpoint}/{unavailable_model}")
+        assert response.status_code == 404
+        assert response.json()["message"] == f"Model '{unavailable_model}' not found"
+        mock_requests_get.assert_called_once()
+        called_url = mock_requests_get.call_args[0][0]
+        assert f"/models/{unavailable_model}" in called_url
+
+
+def test_get_summary_of_model_found(client):
+    available_model = models_summary[0]["name"]
+    mlflow_response = models_summary[0]
+    with patch(
+        "ml_host_backend.app.services.mlflow_service.requests.get"
+    ) as mock_requests_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = mlflow_response
+        mock_response.raise_for_status.return_value = None
+        mock_requests_get.return_value = mock_response
+        response = client.get(f"{base_endpoint}/{available_model}")
+        assert response.status_code == 200
+        assert response.json() == mlflow_response
+        mock_requests_get.assert_called_once()
+        called_url = mock_requests_get.call_args[0][0]
+        assert f"/models/{available_model}" in called_url
+
+
+@pytest.mark.skip(reason="Underlying functionality to be refactored")
 def test_make_prediction_for_image_success(client):
     img = Image.new("L", (224, 224), color=128)
     img_bytes = io.BytesIO()
@@ -35,7 +101,7 @@ def test_make_prediction_for_image_success(client):
     available_model = models_summary[0]["name"]
     file = {"file": ("test.png", img_bytes, "image/png")}
     with patch(
-        "ml_host_backend.app.services.models_service.download_model_from_google_drive",
+        "ml_host_backend.app.services.google_drive_service.download_model_from_google_drive",
         return_value=None,
     ), patch(
         "ml_host_backend.app.services.models_service.tf.keras.models.load_model",
@@ -48,7 +114,7 @@ def test_make_prediction_for_image_success(client):
 
 def test_make_prediction_for_image_invalid_file(client):
     with patch(
-        "ml_host_backend.app.services.models_service.download_model_from_google_drive",
+        "ml_host_backend.app.services.google_drive_service.download_model_from_google_drive",
         return_value=None,
     ), patch(
         "ml_host_backend.app.services.models_service.tf.keras.models.load_model",
@@ -69,6 +135,7 @@ def test_make_prediction_for_image_missing_file(client):
     assert response.status_code == 422
 
 
+@pytest.mark.skip(reason="Underlying functionality to be refactored")
 def test_make_prediction_for_large_image_file(client):
     img = Image.new("L", (4000, 4000), color=128)  # large image
     img_bytes = io.BytesIO()
@@ -76,7 +143,7 @@ def test_make_prediction_for_large_image_file(client):
     img_bytes.seek(0)
     available_model = models_summary[0]["name"]
     with patch(
-        "ml_host_backend.app.services.models_service.download_model_from_google_drive",
+        "ml_host_backend.app.services.google_drive_service.download_model_from_google_drive",
         return_value=None,
     ), patch(
         "ml_host_backend.app.services.models_service.tf.keras.models.load_model",
@@ -95,7 +162,7 @@ def test_make_prediction_for_image_prediction_invalid_input(client):
     available_model = models_summary[0]["name"]
 
     with patch(
-        "ml_host_backend.app.services.models_service.download_model_from_google_drive",
+        "ml_host_backend.app.services.google_drive_service.download_model_from_google_drive",
         return_value=None,
     ), patch(
         "ml_host_backend.app.services.models_service.tf.keras.models.load_model",

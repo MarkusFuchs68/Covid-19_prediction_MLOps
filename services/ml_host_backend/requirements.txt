@@ -1,7 +1,8 @@
-fastapi[standard]~=0.115.12
 dotenv
-pillow
+fastapi[standard]~=0.115.12
 gdown
-tensorflow
 numpy
 pandas
+pillow
+requests
+tensorflow
