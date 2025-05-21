@@ -7,6 +7,7 @@ class GoogleDriveFolderEmptyException(Exception):
         self.message = message
         super().__init__(self.message)
 
+
 class ModelNotFoundException(Exception):
     """
     Model not found
@@ -16,6 +17,7 @@ class ModelNotFoundException(Exception):
         self.message = message
         super().__init__(self.message)
 
+
 class GoogleDriveServiceException(Exception):
     """
     Google drive exception
@@ -24,6 +26,7 @@ class GoogleDriveServiceException(Exception):
     def __init__(self, message="Google drive exception."):
         self.message = message
         super().__init__(self.message)
+
 
 class GoogleDriveDownloadException(Exception):
     """

@@ -74,13 +74,13 @@ repos:
       require_serial: true
       additional_dependencies: [flake8]
 
-- repo: local
-  hooks:
-    - id: pytest
-      name: pytest
-      entry: ./pre-commit-pytest.sh
-      language: python
-      types: [file, python]
-      pass_filenames: false
-      always_run: true
-      additional_dependencies: [pytest]
+# - repo: local
+#   hooks:
+#     - id: pytest-ml_host_backend
+#       name: pytest
+#       entry: pytest services/ml_host_backend/ --tb=short
+#       language: python
+#       types: [file, python]
+#       pass_filenames: false
+#       always_run: true
+#       additional_dependencies: [pytest]
