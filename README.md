@@ -64,12 +64,22 @@ Pre-Commit Hooks detect changes and will execute configured pipelines on changed
 - List containers <code>docker ps</code>
 - Connect to container <code>docker exec -it \<id\> sh</code> e.g. <code>docker exec -it c223c30b3fb8 sh</code>
 
+## Colima
+you can use an alternative to docker desktop on Mac in order to improve docker performance:
+- <code>brew install colima</code> (install colima using Homebrew)
+- <code>colima start</code> (start colima and substitute docker daemon)
+- \<use your docker commands as usual>
+- <code>colima stop</code> (shut down and switch back to normal docker daemon)
+
 ## ml_train_hub service
 - for local mlflow server, run this command from the **services/ml_train_hub** folder: <code>mlflow server --backend-store-uri ./mlruns --default-artifact-root ./mlruns --host 0.0.0.0 --port 8001</code>
-- for local mlflow server via docker: <code>docker-compose up ml_train_hub_dev</code>
-- testing:
+- for local fastapi server, run this command from the **services** folder: <code>uvicorn ml_train_hub.app.main:app --host 0.0.0.0 --port $UVICORN_PORT 8002</code>
+- for local mlflow + fastapi server via docker: <code>docker-compose up ml_train_hub_dev</code>
+- Testing:
   - unit tests: <code>pytest</code>
   - integration tests: <code>pytest -m integration</code>
+  - or simply run <code>docker-compose up ml_train_hub_test</code>, which will start up MLFlow and FastAPI servers, execute all tests and shutdown when finished
+  - File exchange for model registering: the ml_train_hub_\<tag> container exchanges files via local folder 'file_exchange'. In order to register a model, you must place your model file into the file_exchange folder and specify the filepath when calling the API endpoint. Example: 'file_exchange/my_model.keras'. Note: Only *.keras model files are supported.
 
 ## DVC
 for our projects demo purpose, we use DVC to pragmatically store the MLFlow database files in dagshub
