@@ -46,3 +46,23 @@ class MLFlowException(Exception):
     def __init__(self, message="Coul not retrieve models from MLFlow."):
         self.message = message
         super().__init__(self.message)
+
+
+class MLFlowUnavailableException(Exception):
+    """
+    MLFlow unavailable
+    """
+
+    def __init__(self, message="MLFlow is unavailable."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class MLFlowConfigurationException(Exception):
+    """
+    MLFlow service configuration exception
+    """
+
+    def __init__(self, message="MLFlow service is not correctly configured"):
+        self.message = message
+        super().__init__(self.message)

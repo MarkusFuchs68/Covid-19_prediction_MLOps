@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
       target: dev
     container_name: ml_host_backend_dev
+    image: ml_host_backend:dev
     depends_on:
       - ml_train_hub_dev
     env_file:

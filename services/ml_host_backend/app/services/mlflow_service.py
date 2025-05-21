@@ -2,9 +2,10 @@ import logging
 import os
 
 import requests
-from ml_host_backend.app.exceptions.client_exceptions import InvalidArgumentException
 from ml_host_backend.app.exceptions.service_exceptions import (
+    MLFlowConfigurationException,
     MLFlowException,
+    MLFlowUnavailableException,
     ModelNotFoundException,
 )
 
@@ -16,16 +17,35 @@ def get_mlflow_host_and_port():
     mlflow_port = os.getenv("MLFLOW_PORT")
     if not mlflow_host or not mlflow_port:
         logger.error("MLFLOW_HOST or MLFLOW_PORT environment variable not set.")
-        raise InvalidArgumentException(
+        raise MLFlowConfigurationException(
             "MLFLOW_HOST or MLFLOW_PORT environment variable not set."
         )
     return mlflow_host, mlflow_port
 
 
+def check_service_availability_or_throw():
+    mlflow_host, mlflow_port = get_mlflow_host_and_port()
+    url = f"http://{mlflow_host}:{mlflow_port}/health"
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        logger.info("MLFlow service is available.")
+        return mlflow_host, mlflow_port
+    except requests.exceptions.ConnectionError as e:
+        logger.error(
+            f"MLFlow service is not available at provided host and port: {e}",
+            exc_info=True,
+        )
+        raise MLFlowUnavailableException(
+            "MLFlow service is not available at the provided host and port."
+        )
+
+
 def list_all_models_from_mlflow():
     logger.info("Fetching summary of all models from MLFlow.")
-    mlflow_host, mlflow_port = get_mlflow_host_and_port()
+    mlflow_host, mlflow_port = check_service_availability_or_throw()
     url = f"http://{mlflow_host}:{mlflow_port}/models"
+    logger.info(f"Fetching models summary from MLFlow at: {url}")
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
@@ -40,7 +60,7 @@ def list_all_models_from_mlflow():
 
 def get_single_model_summary_from_mlflow(model_name: str):
     logger.info(f"Fetching summary for model: {model_name} from MLFlow.")
-    mlflow_host, mlflow_port = get_mlflow_host_and_port()
+    mlflow_host, mlflow_port = check_service_availability_or_throw()
     url = f"http://{mlflow_host}:{mlflow_port}/models/{model_name}"
     try:
         response = requests.get(url, timeout=10)

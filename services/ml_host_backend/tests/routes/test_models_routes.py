@@ -18,6 +18,15 @@ def client():
     return TestClient(app)
 
 
+@pytest.fixture(autouse=True)
+def patch_mlflow_host_and_port():
+    with patch(
+        "ml_host_backend.app.services.mlflow_service.get_mlflow_host_and_port",
+        return_value=("localhost", "5000"),
+    ):
+        yield
+
+
 def test_get_summary_of_all_models(client):
     expected_models = models_summary
     with patch(
@@ -30,9 +39,27 @@ def test_get_summary_of_all_models(client):
         response = client.get(base_endpoint)
         assert response.status_code == 200
         assert response.json() == expected_models
-        mock_requests_get.assert_called_once()
+        assert mock_requests_get.call_count == 2
         called_url = mock_requests_get.call_args[0][0]
         assert "/models" in called_url
+
+
+def test_get_summary_of_all_models_mlflow_timeout(client):
+    """Test /api/models when MLflow service times out (requests.exceptions.Timeout)."""
+    import requests
+
+    with patch(
+        "ml_host_backend.app.services.mlflow_service.requests.get"
+    ) as mock_requests_get:
+        mock_requests_get.side_effect = requests.exceptions.ConnectionError(
+            "Request timed out"
+        )
+        response = client.get(base_endpoint)
+        assert response.status_code == 503
+        assert (
+            "timeout" in response.json()["message"].lower()
+            or "service" in response.json()["message"].lower()
+        )
 
 
 def test_get_summary_of_single_model(client):
@@ -49,7 +76,7 @@ def test_get_summary_of_single_model(client):
         response = client.get(f"{base_endpoint}/{available_model}")
         assert response.status_code == 200
         assert response.json() == mlflow_response
-        mock_requests_get.assert_called_once()
+        assert mock_requests_get.call_count == 2
         called_url = mock_requests_get.call_args[0][0]
         assert f"/models/{available_model}" in called_url
 
@@ -62,12 +89,11 @@ def test_get_summary_of_single_model_not_found(client):
         mock_response = MagicMock()
         mock_response.status_code = 404
         mock_response.json.return_value = None
-        mock_response.raise_for_status.side_effect = Exception("404 Not Found")
         mock_requests_get.return_value = mock_response
         response = client.get(f"{base_endpoint}/{unavailable_model}")
         assert response.status_code == 404
         assert response.json()["message"] == f"Model '{unavailable_model}' not found"
-        mock_requests_get.assert_called_once()
+        assert mock_requests_get.call_count == 2
         called_url = mock_requests_get.call_args[0][0]
         assert f"/models/{unavailable_model}" in called_url
 
@@ -86,7 +112,7 @@ def test_get_summary_of_model_found(client):
         response = client.get(f"{base_endpoint}/{available_model}")
         assert response.status_code == 200
         assert response.json() == mlflow_response
-        mock_requests_get.assert_called_once()
+        assert mock_requests_get.call_count == 2
         called_url = mock_requests_get.call_args[0][0]
         assert f"/models/{available_model}" in called_url
 

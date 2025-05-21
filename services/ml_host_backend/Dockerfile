@@ -20,7 +20,6 @@ RUN pip install -r requirements.txt
 
 # copy FastAPI app files
 COPY ./app ./ml_host_backend/app
-COPY ./.env ./ml_host_backend
 
 # ----- DEV STAGE -----
 FROM builder AS dev
