@@ -104,8 +104,7 @@ initialize DVC:
 Setup:
 - Python custom package microlog to share common logging behaviour and settings in one place
 - microservices log to stdout
-- ship stdout logs with Filebeat to ElasticSearch
-- parse shipped logs in Elasticsearch
+- promtail ships logs to grafana
 - visualize logs in Kibana.
 
 ## Monitoring
