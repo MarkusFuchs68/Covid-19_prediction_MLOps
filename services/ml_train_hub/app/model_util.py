@@ -1,7 +1,15 @@
 import io
 import json
+import logging
+import time
 
 from tensorflow.keras.utils import image_dataset_from_directory
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 def get_model_architecture(model):
@@ -41,7 +49,7 @@ def get_model_architecture(model):
     # The data list holds lists of model architecture data
     # The architecture data is: "Layer Name (type)", "Output Shape", "Param Count"
     # Convert it to a pretty formatted json object
-    json_data = {
+    architecture = {
         "layer_"
         + str(index): {
             "layer_name": layer[0],
@@ -52,23 +60,39 @@ def get_model_architecture(model):
     }
 
     # Return the data in pretty format json
-    return json.dumps(json_data, indent=2)
+    return json.dumps(architecture, indent=2)
 
 
 def evaluate_model(model, class_names):
     """
-    We run an evaluation against the evaluation dataset
-    and return according metrics
+    We run an evaluation against the evaluation dataset and return according metrics
     """
+    try:
+        # Read and resize the images to the models expected input shape
+        input_shape = model.input_shape[1:3]  # Expected image size (height, width)
+        dataset = read_and_resize_evaluation_dataset(class_names, input_shape)
+        img_num = 0
+        for batch in dataset:
+            images, _ = batch
+            img_num += images.shape[0]
 
-    # Read and resize the images to the models expected input shape
-    # input_shape = model.input_shape[1:3]  # Expected image size (height, width)
-    # dataset = read_and_resize_evaluation_dataset(class_names, input_shape)
+        # Run the predictions on the evaluation dataset and take time for performance measurements
+        logger.info(f"Starting predictions on dataset with {img_num} images...")
+        start_time = time.time()
+        y_true, y_pred = get_predictions_and_labels(model, dataset, img_num)
+        duration = time.time() - start_time
+        minutes = int(duration // 60)
+        seconds = int(duration % 60)
+        pred_time = f"{minutes}:{seconds:02d}"
+        logger.info(f"Finished predictions on dataset in {pred_time} min:sec")
 
-    # Run the predictions on the evaluation dataset
+        # Calculate metrics manually without scikit-learn
+        metrics = calculate_metrics(y_true, y_pred, class_names)
+        return metrics  # this not in json format, since MLFlow expects a native dict object
 
-    metrics = dict({"performance": 0.85})
-    return metrics
+    except Exception as e:
+        logger.error(f"Error during evaluating the model metrics: {e}")
+        raise  # and forward the exception
 
 
 def read_and_resize_evaluation_dataset(class_names, input_shape=(224, 224)):
@@ -83,73 +107,64 @@ def read_and_resize_evaluation_dataset(class_names, input_shape=(224, 224)):
 
     # Optionally, you can cache and prefetch for performance, but takes high RAM usage!
     # dataset = dataset.cache().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-
     return dataset
 
 
-"""
-# Get true labels and predictions from the test dataset
-def get_predictions_and_labels(model, dataset):
-    true_labels = [] # List to hold true labels
-    pred_labels = [] # List to hold predicted labels
+def get_predictions_and_labels(model, dataset, img_num):
+    # Get true labels and predictions from the test dataset
+    y_true = []  # List to hold true labels
+    y_pred = []  # List to hold predicted labels
 
     for images, labels in dataset:
 
         # Get the model's predictions
-        preds = model.predict(images, verbose=0) # Predict class probabilities
+        preds = model.predict(images, verbose=0)  # Predict class probabilities
         # Get the predicted labels (argmax)
-        pred_labels.extend(np.argmax(preds, axis=-1))  # Convert probabilities to class index (highest probability)
+        y_pred.extend(
+            [int(list(p).index(max(p))) for p in preds]
+        )  # Convert probabilities to class index (highest probability)
+        # Get the true labels
+        y_true.extend(labels.numpy())
 
-        true_labels.extend(labels.numpy())  # Get the true labels
+        logger.debug(f"Predicted {len(y_true)} evaluation images out of {img_num}")
 
-    return np.array(true_labels), np.array(pred_labels) # Return both as numpy arrays
+    return y_true, y_pred
 
 
-# Print a report with classification_report and heatmap confusion_matrix
-def report_model_performance(y_true, y_pred, class_names): # Function to print classification report and show confusion matrix
-    # Print the classification report (precision, recall, F1-score)
-    cr = classification_report_imbalanced(y_true, y_pred, target_names=class_names, output_dict=True) # Generate classification report (precision, recall, F1-score)
-    # Make the report a pandas array
-    df_cr = pd.DataFrame(cr).transpose() # Convert report to DataFrame for display
-    display(df_cr)
+def calculate_metrics(y_true, y_pred, class_names):
+    # Calculate metrics natively
+    metrics = {}
+    # Convert to lists if not already
+    y_true = list(y_true)
+    y_pred = list(y_pred)
+    total = len(y_true)
+    correct = sum(1 for yt, yp in zip(y_true, y_pred) if yt == yp)
+    metrics["accuracy"] = float(correct) / total if total > 0 else 0.0
 
-    # Show also the non-normalized crosstab
-    # display(pd.crosstab(y_true, y_pred, rownames=['True'], colnames=['Predicted']))
-    ct = pd.crosstab(y_true, y_pred, rownames=['True'], colnames=['Predicted']) # Create confusion matrix as a pandas table
-    column_mapping = {index: class_name for index, class_name in enumerate(class_names)} # Rename rows and columns using class names
-    ct = ct.rename(columns=column_mapping)
-    ct.index = class_names
-    display(ct) # Display the table
+    metrics["precision"] = {}
+    metrics["recall"] = {}
+    metrics["f1_score"] = {}
 
-    # Display the confusion matrix
-    plt.figure(figsize=(4, 4)) # Plot confusion matrix as heatmap
-    # Compute the normalized confusion matrix (normalized on columns -> we get recall so)
-    cnf_matrix = confusion_matrix(y_true, y_pred, normalize='true') # Create the normalized confusion matrix (values between 0 and 1)
-    # Plot the confusion matrix as a heatmap
-    sns.heatmap(cnf_matrix, cmap='Blues', annot=True, cbar=False, fmt=".2f")
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    # Set x and y ticks and labels
-    plt.xticks(ticks=np.arange(0.5, len(class_names)+0.5, 1),
-               labels=class_names, rotation=45, ha='right')
-    plt.yticks(ticks=np.arange(0.5, len(class_names)+0.5, 1),
-               labels=class_names, rotation=45, ha='right')
-    plt.show()
+    for idx, class_name in enumerate(class_names):
+        tp = sum(1 for yt, yp in zip(y_true, y_pred) if yt == idx and yp == idx)
+        fp = sum(1 for yt, yp in zip(y_true, y_pred) if yt != idx and yp == idx)
+        fn = sum(1 for yt, yp in zip(y_true, y_pred) if yt == idx and yp != idx)
 
-    # Return a numpy array, from where we can copy and paste the values
-    # into an evaluation excel sheet
-    report = {}
-    report['crosstab'] = ct
-    report['classification_report'] = df_cr # Store the classification report and confusion matrix
-    report['confusion_matrix'] = cnf_matrix
-    return report
-"""
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        f1 = (
+            2 * precision * recall / (precision + recall)
+            if (precision + recall) > 0
+            else 0.0
+        )
+
+        metrics["precision"][class_name] = precision
+        metrics["recall"][class_name] = recall
+        metrics["f1_score"][class_name] = f1
+
+    return metrics
 
 
 # For debugging
 if __name__ == "__main__":
-    import mlflow
-
-    mlflow.set_tracking_uri("http://localhost:8001")  # dev server on port 8001
-    model = mlflow.tensorflow.load_model("runs:/e3934cdf985348dda28ccf9d1448a192/model")
-    get_model_architecture(model)
+    print("try functions from debugpy here")
