@@ -63,7 +63,7 @@ def get_model_architecture(model):
     return json.dumps(architecture, indent=2)
 
 
-def evaluate_model(model, class_names):
+def evaluate_model(model, class_names, max_num):
     """
     We run an evaluation against the evaluation dataset and return according metrics
     """
@@ -79,7 +79,7 @@ def evaluate_model(model, class_names):
         # Run the predictions on the evaluation dataset and take time for performance measurements
         logger.info(f"Starting predictions on dataset with {img_num} images...")
         start_time = time.time()
-        y_true, y_pred = get_predictions_and_labels(model, dataset, img_num)
+        y_true, y_pred = get_predictions_and_labels(model, dataset, img_num, max_num)
         duration = time.time() - start_time
         minutes = int(duration // 60)
         seconds = int(duration % 60)
@@ -101,7 +101,7 @@ def read_and_resize_evaluation_dataset(class_names, input_shape=(224, 224)):
         directory="data",
         class_names=class_names,  # only class names to include by model
         label_mode="int",  # for sparse_categorical_entropy training
-        batch_size=32,  # Use defined batch size
+        batch_size=8,  # Use defined batch size, rather small for saving system RAM
         image_size=input_shape,  # Resize input images
     )
 
@@ -110,11 +110,12 @@ def read_and_resize_evaluation_dataset(class_names, input_shape=(224, 224)):
     return dataset
 
 
-def get_predictions_and_labels(model, dataset, img_num):
+def get_predictions_and_labels(model, dataset, img_num, max_num):
     # Get true labels and predictions from the test dataset
     y_true = []  # List to hold true labels
     y_pred = []  # List to hold predicted labels
 
+    img_count = 0
     for images, labels in dataset:
 
         # Get the model's predictions
@@ -127,6 +128,14 @@ def get_predictions_and_labels(model, dataset, img_num):
         y_true.extend(labels.numpy())
 
         logger.debug(f"Predicted {len(y_true)} evaluation images out of {img_num}")
+
+        if max_num > 0:
+            img_count += len(y_true)
+            if img_count > max_num:
+                logger.debug(
+                    f"Stopped predicting images at {img_count} images due to max_num {max_num}"
+                )
+                break
 
     return y_true, y_pred
 
@@ -162,6 +171,8 @@ def calculate_metrics(y_true, y_pred, class_names):
         metrics["recall"][class_name] = recall
         metrics["f1_score"][class_name] = f1
 
+    logger.info("METRICS:", metrics)
+    print(metrics)
     return metrics
 
 

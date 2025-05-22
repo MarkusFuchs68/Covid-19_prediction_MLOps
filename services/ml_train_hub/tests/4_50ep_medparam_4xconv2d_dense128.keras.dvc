@@ -1,0 +1,5 @@
+outs:
+- md5: 3694bbe361f705ee08cd665b03d42f5d
+  size: 26553410
+  hash: md5
+  path: 4_50ep_medparam_4xconv2d_dense128.keras

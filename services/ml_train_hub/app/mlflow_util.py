@@ -117,7 +117,7 @@ def log_mlflow_experiment(
         ) from e
 
 
-def evaluate_and_log_metrics(modelinfo: ModelInfo, class_names: list):
+def evaluate_and_log_metrics(modelinfo: ModelInfo, class_names: list, max_num: int):
     """
     Background task, which calculates model performance from the evaluation dataset
     and logs them to the registered experiment identified by the run_id
@@ -133,15 +133,24 @@ def evaluate_and_log_metrics(modelinfo: ModelInfo, class_names: list):
             f"Successfully loaded model from MLFlow model_uri '{modelinfo.model_uri}' for calculations"
         )
 
-        # Predict the evaluation set and calculate metrics
-        metrics = evaluate_model(model, class_names)
+        # Predict the evaluation set and calculate metrics, limited by max_num predictions
+        metrics = evaluate_model(model, class_names, max_num)
         logger.info(
             f"Successfully evaluated model metrics for model_uri '{modelinfo.model_uri}'."
         )
 
         # Add the metrics to the models experiment run
         with mlflow.start_run(run_id=modelinfo.run_id):
-            mlflow.log_metrics(metrics)
+            mlflow.log_metric("accuracy", metrics["accuracy"])
+
+        for label, value in metrics["precision"].items():
+            mlflow.log_metric(f"precision_{label}", value)
+
+        for label, value in metrics["recall"].items():
+            mlflow.log_metric(f"recall_{label}", value)
+
+        for label, value in metrics["f1_score"].items():
+            mlflow.log_metric(f"f1_score_{label}", value)
 
     except Exception as e:
         logger.error(
