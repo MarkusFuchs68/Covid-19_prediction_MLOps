@@ -32,6 +32,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
+      - ./data/prometheus-data:/prometheus # persist time-series metrics data and configurations
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
@@ -42,6 +43,7 @@ services:
       - "3100:3100"
     command: -config.file=/etc/loki/loki-config.yml
     volumes:
+      - ./data/loki-data:/loki # persist ingested logs
       - ./loki-config.yml:/etc/loki/loki-config.yml
     networks:
       - loki
@@ -58,8 +60,8 @@ services:
   grafana:
     environment:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true # removes login
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin # grants admin role to anonymous access
       - GF_FEATURE_TOGGLES_ENABLE=alertingSimplifiedRouting,alertingQueryAndExpressionsStepMode
     entrypoint:
       - sh
@@ -83,15 +85,15 @@ services:
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
-    # volumes:
-    #   - grafana-data:/var/lib/grafana
+    volumes:
+      - ./data/grafana-data:/var/lib/grafana # persist dashboards, users and settings
     networks:
       - loki
 
-# volumes:
-#   grafana-data:
-#     driver: local
-#   prometheus-data:
-#     driver: local
-#   loki-data:
-#     driver: local
+volumes:
+  grafana-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  loki-data:
+    driver: local
