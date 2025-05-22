@@ -1,11 +1,36 @@
 services:
+  ## -------------------------- ##
+  # ml_host_backend related services
+  ## -------------------------- ##
+  ml_host_backend_base_image:
+    build:
+      context: ./services/ml_host_backend
+      dockerfile: Dockerfile.base
+    image: ml_host_backend:base
   ml_host_backend_test:
     build:
       context: ./services/ml_host_backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.stages
       target: test
+    depends_on:
+      - ml_host_backend_base_image
     container_name: ml_host_backend_test
-
+    image: ml_host_backend:test
+  ml_host_backend_prod:
+    build:
+      context: ./services/ml_host_backend
+      dockerfile: Dockerfile.stages
+      target: prod
+    image: ml_host_backend:prod
+    depends_on:
+      - ml_host_backend_test # Ensure tests pass before starting prod
+    ports:
+    - "8080:8080"
+    container_name: ml_host_backend_prod
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+  ## --------------------------##
+  # ml_train_hub related services
+  ## --------------------------##
   ml_train_hub_test:
     container_name: ml_train_hub_test
     image: ml_train_hub:test #  👈 This sets the name and tag
@@ -13,19 +38,6 @@ services:
       context: ./services/ml_train_hub
       dockerfile: Dockerfile
       target: test
-
-  ml_host_backend_prod:
-    build:
-      context: ./services/ml_host_backend
-      dockerfile: Dockerfile
-      target: prod
-    depends_on:
-      - ml_host_backend_test # Ensure tests pass before starting prod
-    ports:
-    - "8080:8080"
-    container_name: ml_host_backend_prod
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
-
   ml_train_hub_prod:
     container_name: ml_train_hub_prod
     image: ml_train_hub:prod #  👈 This sets the name and tag, consider version numbers from ENV variable

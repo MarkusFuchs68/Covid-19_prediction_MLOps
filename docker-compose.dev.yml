@@ -7,6 +7,7 @@ services:
       context: ./services/ml_host_backend
       dockerfile: Dockerfile.base
     image: ml_host_backend:base
+  # Semi-containerised for development purpose
   ml_host_backend_local:
     image: ml_host_backend:base
     volumes:
@@ -21,14 +22,19 @@ services:
     ports:
     - "8000:8000"
     command: ["uvicorn", "ml_host_backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+  # fully containerised server for using with other services
   ml_host_backend_dev:
     build:
       context: ./services/ml_host_backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.stages
       target: dev
     container_name: ml_host_backend_dev
+    volumes:
+      - ./services/ml_host_backend:/home/services/ml_host_backend
+      - ./services/ml_train_hub/file_exchange:/home/services/file_exchange
     image: ml_host_backend:dev
     depends_on:
+      - ml_host_backend_base_image
       - ml_train_hub_dev
     env_file:
       - ./.envs/.ml_host_backend
