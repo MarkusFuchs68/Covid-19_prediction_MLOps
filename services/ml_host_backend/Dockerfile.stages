@@ -1,0 +1,31 @@
+# ----- BASE BUILD STAGE -----
+# Build the base docker image from Dockerfile.base before proceeding to build this
+FROM ml_host_backend:base AS builder
+
+# copy FastAPI app files
+COPY ./app ./ml_host_backend/app
+
+# ----- DEV STAGE -----
+FROM builder AS dev
+# setup env vars
+ENV LOG=1
+# copy test folder
+COPY ./tests ./ml_host_backend/tests
+CMD ["uvicorn", "ml_host_backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# # ----- TEST STAGE -----
+# Stages used for testing later in CI/CD pipeline
+FROM builder AS test
+# setup env vars
+ENV LOG=1
+COPY ./tests ./ml_host_backend/tests
+CMD ["python", "-m", "pytest"]
+
+# # ----- PROD STAGE -----
+FROM builder AS prod
+# usually you would copy app files, but for here we just copy test files
+# setup env vars
+ENV LOG=0
+# create a non-root user and switch to it
+RUN useradd produser
+USER produser

@@ -7,9 +7,6 @@ import pandas as pd
 import tensorflow as tf
 from ml_host_backend.app.exceptions.client_exceptions import InvalidArgumentException
 from ml_host_backend.app.exceptions.service_exceptions import ModelNotFoundException
-from ml_host_backend.app.services.google_drive_service import (
-    download_model_from_google_drive,
-)
 from ml_host_backend.app.services.meta import classes_4, models_summary
 from PIL import Image, UnidentifiedImageError
 
@@ -19,7 +16,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-MODEL_FOLDER = os.path.join(".", "data/models")
+MODEL_FOLDER = "/home/services/file_exchange"
+DRIVE_URL = os.getenv("GOOGLE_DRIVE_URL")
 
 
 def read_and_prepare_image(file_content):
@@ -98,12 +96,6 @@ def predict_image_classification_4_classes(model_name, file_content):
 
     model_file_name = model_name + ".keras"
     model_path = os.path.join(MODEL_FOLDER, model_file_name)
-
-    # teporary solution, the following function can be used to load the model from Google Drive
-    # if already loaded, it can be skipped
-    if not os.path.exists(model_path):
-        logger.error(f"Model file '{model_path}' does not exist.")
-        download_model_from_google_drive(model_file_name)
 
     model = tf.keras.models.load_model(model_path)
 
