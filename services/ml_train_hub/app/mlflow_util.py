@@ -142,15 +142,12 @@ def evaluate_and_log_metrics(modelinfo: ModelInfo, class_names: list, max_num: i
         # Add the metrics to the models experiment run
         with mlflow.start_run(run_id=modelinfo.run_id):
             mlflow.log_metric("accuracy", metrics["accuracy"])
-
-        for label, value in metrics["precision"].items():
-            mlflow.log_metric(f"precision_{label}", value)
-
-        for label, value in metrics["recall"].items():
-            mlflow.log_metric(f"recall_{label}", value)
-
-        for label, value in metrics["f1_score"].items():
-            mlflow.log_metric(f"f1_score_{label}", value)
+            for label, value in metrics["precision"].items():
+                mlflow.log_metric(f"precision_{label}", value)
+            for label, value in metrics["recall"].items():
+                mlflow.log_metric(f"recall_{label}", value)
+            for label, value in metrics["f1_score"].items():
+                mlflow.log_metric(f"f1_score_{label}", value)
 
     except Exception as e:
         logger.error(
