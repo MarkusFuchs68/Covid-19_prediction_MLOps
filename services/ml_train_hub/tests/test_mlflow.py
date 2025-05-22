@@ -11,7 +11,11 @@ def test_log_experiment():
         os.path.dirname(__file__), "4_50ep_medparam_4xconv2d_dense128.keras"
     )
     class_names = list(["COVID", "Lung_Opacity", "Normal", "Viral Pneumonia"])
-    modelinfo = log_mlflow_experiment(model_filepath, class_names)
+    modelinfo = log_mlflow_experiment(
+        model_filepath=model_filepath,
+        class_names=class_names,
+        experiment_name="integration_testing",
+    )
     assert isinstance(modelinfo, ModelInfo)
 
 
@@ -24,6 +28,7 @@ def test_log_experiment_and_register_model():
     modelinfo = log_mlflow_experiment(
         model_filepath=model_filepath,
         class_names=class_names,
+        experiment_name="integration_testing",
         register_model=True,
         model_name="Test",
     )
@@ -65,40 +70,4 @@ if __name__ == "__main__":
 
     # test_get_model(TestClient(app))
 
-    test_log_experiment_and_register_model()
-
-
-"""
-import requests
-import pandas as pd
-import json
-
-# Prepare the data
-data = pd.read_csv("data/fake_data.csv")
-X = data.drop(columns=["date", "demand"])
-X = X.astype('float')
-
-# Convert data to JSON format
-json_data = {
-    "dataframe_split": {
-        "columns": X.columns.tolist(),
-        "data": X.head(2).values.tolist()  # Testing with 2 rows
-    }
-}
-
-# Send request to the API
-response = requests.post(
-    url="http://localhost:5002/invocations",
-    json=json_data,
-    headers={"Content-Type": "application/json"}
-)
-
-# Display predictions
-if response.status_code == 200:
-    predictions = response.json()
-    print("\nReceived predictions:")
-    print(predictions)
-else:
-    print(f"Error: {response.status_code}")
-    print(response.text)
-"""
+    test_log_experiment()
