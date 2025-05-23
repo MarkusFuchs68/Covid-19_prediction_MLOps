@@ -29,67 +29,56 @@ services:
     ports:
     - "8001-8002:8001-8002" # MLflow server (dev=8001) and FastAPI server (dev=8002)
 
-  prometheus:
+  prometheus: # monitor & store metrics and make them available for grafana
     image: prom/prometheus:latest
     volumes:
       - ./data/prometheus-data:/prometheus # persist time-series metrics data and configurations
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
+    networks:
+      - loki
 
-  loki:
-    image: grafana/loki:latest
+  loki: # store logs and make them available for grafana
+    image: grafana/loki:3.5.1
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/loki-config.yml
     volumes:
       - ./data/loki-data:/loki # persist ingested logs
-      - ./loki-config.yml:/etc/loki/loki-config.yml
+      - ./observability/loki/loki-config.yml:/etc/loki/loki-config.yml
     networks:
       - loki
 
-  promtail:
-    image: grafana/promtail:latest
+  alloy: # ship logs to loki
+    image: grafana/alloy:latest
+    container_name: grafana-alloy
     volumes:
-      - /var/log:/var/log        # Adjust if needed
-      - ./promtail-config.yml:/etc/promtail/config.yml
-    command: -config.file=/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro  # Linux only
+      - ./observability/agent/config.alloy:/etc/alloy/config.alloy
+      - ./data/alloy-data:/var/lib/alloy/data # persist alloy's position and state
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+    ports:
+      - "12345:12345"
     networks:
       - loki
+    depends_on:
+      - loki
 
-  grafana:
+  grafana: # visualize observability data
     environment:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_AUTH_ANONYMOUS_ENABLED=true # removes login
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin # grants admin role to anonymous access
       - GF_FEATURE_TOGGLES_ENABLE=alertingSimplifiedRouting,alertingQueryAndExpressionsStepMode
-    entrypoint:
-      - sh
-      - -euc
-      - |
-        mkdir -p /etc/grafana/provisioning/datasources
-        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
-        apiVersion: 1
-        datasources:
-        - name: Loki
-          type: loki
-          access: proxy
-          orgId: 1
-          url: http://loki:3100
-          basicAuth: false
-          isDefault: true
-          version: 1
-          editable: false
-        EOF
-        /run.sh
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
     volumes:
       - ./data/grafana-data:/var/lib/grafana # persist dashboards, users and settings
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning # automatically provision (e.g. datasources)
     networks:
       - loki
-
 volumes:
   grafana-data:
     driver: local
