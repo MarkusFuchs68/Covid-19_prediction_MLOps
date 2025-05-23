@@ -3,6 +3,7 @@ import json
 import logging
 import time
 
+import tensorflow as tf
 from tensorflow.keras.utils import image_dataset_from_directory
 
 # Configure logging
@@ -76,6 +77,9 @@ def evaluate_model(model, class_names, max_num):
             images, _ = batch
             img_num += images.shape[0]
 
+        # Preprocess the evaluation data according to the models input shape
+        dataset = preprocess_images(dataset, model)
+
         # Run the predictions on the evaluation dataset and take time for performance measurements
         logger.info(f"Starting predictions on dataset with {img_num} images...")
         start_time = time.time()
@@ -110,11 +114,25 @@ def read_and_resize_evaluation_dataset(class_names, input_shape=(224, 224)):
     return dataset
 
 
+def preprocess_images(dataset, model):
+    # Our evaluation data has 3 color channels, convert to 1 channel if expected by the model
+    def to_grayscale(image, label):
+        image = tf.image.rgb_to_grayscale(image)
+        return image, label
+
+    # These lines apply the to_grayscale() function to all validation images.
+    if model.input_shape[-1] == 1:
+        dataset = dataset.map(to_grayscale)
+
+    return dataset
+
+
 def get_predictions_and_labels(model, dataset, img_num, max_num):
     # Get true labels and predictions from the test dataset
     y_true = []  # List to hold true labels
     y_pred = []  # List to hold predicted labels
 
+    max_predictions = img_num if max_num == 0 else max_num
     img_count = 0
     for images, labels in dataset:
 
@@ -127,15 +145,22 @@ def get_predictions_and_labels(model, dataset, img_num, max_num):
         # Get the true labels
         y_true.extend(labels.numpy())
 
-        logger.debug(f"Predicted {len(y_true)} evaluation images out of {img_num}")
-
+        # Check for stop condition
+        img_count += len(images)
         if max_num > 0:
-            img_count += len(y_true)
             if img_count > max_num:
-                logger.debug(
+                logger.info(
                     f"Stopped predicting images at {img_count} images due to max_num {max_num}"
                 )
                 break
+
+        # Show progress every 10 seconds
+        if not hasattr(get_predictions_and_labels, "_last_log_time"):
+            get_predictions_and_labels._last_log_time = time.time()
+        current_time = time.time()
+        if current_time - get_predictions_and_labels._last_log_time >= 10:
+            logger.info(f"Predicted {len(y_true)} evaluation images out of {img_num}, continuing until {max_predictions}")
+            get_predictions_and_labels._last_log_time = current_time
 
     return y_true, y_pred
 
