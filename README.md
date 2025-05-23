@@ -103,7 +103,6 @@ initialize DVC:
 ## Observability
 - Logging Package for json format logs: https://pypi.org/project/python-json-logger/
 - Prometheus for monitoring
-  - https://github.com/korfuri/django-prometheus
 - Loki to collect logs (accessed by Grafana)
 - Grafana for visualization (logs and metrics)
   - https://grafana.com/grafana/dashboards/?search=django
