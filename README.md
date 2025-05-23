@@ -100,13 +100,22 @@ initialize DVC:
 - for access key setup, go to: https://dagshub.com/MarkusFuchs68/Covid-19_prediction_MLOps, and click on **Remote/Data/DVC** and copy the code for 'Setup credentials' and run it.
 - <code>dvc pull<br>dvc commit<br>dvc push</code>
 
-## Logging
-Setup:
-- Python custom package microlog to share common logging behaviour and settings in one place
-- microservices log to stdout
-- ship stdout logs with Filebeat to ElasticSearch
-- parse shipped logs in Elasticsearch
-- visualize logs in Kibana.
+## Observability
+- Logging Package for json format logs: https://pypi.org/project/python-json-logger/
+- Prometheus for monitoring
+  - https://github.com/korfuri/django-prometheus
+- Loki to collect logs (accessed by Grafana)
+- Grafana for visualization (logs and metrics)
+  - https://grafana.com/grafana/dashboards/?search=django
+- log shipping with grafana alloy -> loki -> grafana
+  - https://grafana.com/docs/alloy/latest/set-up/install/docker/
+  - https://grafana.com/docs/alloy/latest/get-started/configuration-syntax/
+  - https://grafana.com/docs/alloy/latest/tutorials/send-logs-to-loki/
 
-## Monitoring
+
+### FastAPI oberservability
 - TBD
+- https://grafana.com/grafana/dashboards/16110-fastapi-observability/
+- https://pypi.org/project/prometheus-fastapi-instrumentator/
+- https://github.com/trallnag/prometheus-fastapi-instrumentator
+- https://github.com/blueswen/fastapi-observability/tree/main
