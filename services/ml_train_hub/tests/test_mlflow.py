@@ -1,5 +1,4 @@
 import os
-from random import random
 
 import pytest
 from ml_train_hub.app.mlflow_util import log_mlflow_experiment
@@ -8,32 +7,28 @@ from mlflow.models.model import ModelInfo
 
 @pytest.mark.integration
 def test_log_experiment():
-    model_filepath = os.path.join(os.path.dirname(__file__), "dummy_model.keras")
-    architecture = dict(
-        {
-            "layer0": "Conv2D(32, (3, 3), activation='relu')",
-            "layer1": "MaxPooling2D((2, 2))",
-        }
+    model_filepath = os.path.join(
+        os.path.dirname(__file__), "4_50ep_medparam_4xconv2d_dense128.keras"
     )
-    metrics = dict({"performance": random() * 0.29 + 0.7})
     class_names = list(["COVID", "Lung_Opacity", "Normal", "Viral Pneumonia"])
     modelinfo = log_mlflow_experiment(
-        model_filepath, architecture, metrics, class_names
+        model_filepath=model_filepath,
+        class_names=class_names,
+        experiment_name="integration_testing",
     )
     assert isinstance(modelinfo, ModelInfo)
 
 
 @pytest.mark.integration
 def test_log_experiment_and_register_model():
-    model_filepath = os.path.join(os.path.dirname(__file__), "dummy_model.keras")
-    architecture = {"architecture": {"layer0": "Conv2D(32, (3, 3), activation='relu')"}}
+    model_filepath = os.path.join(
+        os.path.dirname(__file__), "4_50ep_medparam_4xconv2d_dense128.keras"
+    )
     class_names = ["COVID", "Lung_Opacity", "Normal", "Viral Pneumonia"]
-    metrics = {"performance": random() * 0.29 + 0.7}
     modelinfo = log_mlflow_experiment(
         model_filepath=model_filepath,
-        architecture=architecture,
-        metrics=metrics,
         class_names=class_names,
+        experiment_name="integration_testing",
         register_model=True,
         model_name="Test",
     )
@@ -75,40 +70,4 @@ if __name__ == "__main__":
 
     # test_get_model(TestClient(app))
 
-    test_log_experiment_and_register_model()
-
-
-"""
-import requests
-import pandas as pd
-import json
-
-# Prepare the data
-data = pd.read_csv("data/fake_data.csv")
-X = data.drop(columns=["date", "demand"])
-X = X.astype('float')
-
-# Convert data to JSON format
-json_data = {
-    "dataframe_split": {
-        "columns": X.columns.tolist(),
-        "data": X.head(2).values.tolist()  # Testing with 2 rows
-    }
-}
-
-# Send request to the API
-response = requests.post(
-    url="http://localhost:5002/invocations",
-    json=json_data,
-    headers={"Content-Type": "application/json"}
-)
-
-# Display predictions
-if response.status_code == 200:
-    predictions = response.json()
-    print("\nReceived predictions:")
-    print(predictions)
-else:
-    print(f"Error: {response.status_code}")
-    print(response.text)
-"""
+    test_log_experiment()

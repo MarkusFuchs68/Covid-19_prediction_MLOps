@@ -91,7 +91,8 @@ def log_mlflow_experiment(
         run_name = "run_" + datetime.now().strftime("%Y%m%d_%H%M%S")
 
         with mlflow.start_run(run_name=run_name):
-            mlflow.log_param("class_names", class_names)  # convert list to json format
+            mlflow.log_param("class_names", class_names)
+            mlflow.log_param("architecture", get_model_architecture(model))
             if register_model:  # log experiment and register its model
                 modelinfo = mlflow.tensorflow.log_model(
                     model=model,
@@ -116,13 +117,13 @@ def log_mlflow_experiment(
         ) from e
 
 
-def log_metrics_and_architecture(modelinfo: ModelInfo):
+def evaluate_and_log_metrics(modelinfo: ModelInfo, class_names: list, max_num: int):
     """
     Background task, which calculates model performance from the evaluation dataset
-    and gets model architecture and logs this to the registered experiment identified by the run_id
+    and logs them to the registered experiment identified by the run_id
     """
     logger.info(
-        f"Background process started: Architecture and model metrics evaluation for run ID '{modelinfo.run_id}'"
+        f"Background process started: Model metrics evaluation for run ID '{modelinfo.run_id}'"
     )
     try:
         # Load the model from MLFlow with the information from modelinfo
@@ -132,28 +133,29 @@ def log_metrics_and_architecture(modelinfo: ModelInfo):
             f"Successfully loaded model from MLFlow model_uri '{modelinfo.model_uri}' for calculations"
         )
 
-        # Calculate our data
-        architecture = get_model_architecture(model)
-        logger.info(
-            f"Successfully calculated model architecture for model_uri '{modelinfo.model_uri}'"
-        )
-        metrics = evaluate_model(model)
+        # Predict the evaluation set and calculate metrics, limited by max_num predictions
+        metrics = evaluate_model(model, class_names, max_num)
         logger.info(
             f"Successfully evaluated model metrics for model_uri '{modelinfo.model_uri}'."
         )
 
-        # Add the architecture and the metrics to the models experiment run
+        # Add the metrics to the models experiment run
         with mlflow.start_run(run_id=modelinfo.run_id):
-            mlflow.log_param("architecture", architecture)
-            mlflow.log_metrics(metrics)
+            mlflow.log_metric("accuracy", metrics["accuracy"])
+            for label, value in metrics["precision"].items():
+                mlflow.log_metric(f"precision_{label}", value)
+            for label, value in metrics["recall"].items():
+                mlflow.log_metric(f"recall_{label}", value)
+            for label, value in metrics["f1_score"].items():
+                mlflow.log_metric(f"f1_score_{label}", value)
 
     except Exception as e:
         logger.error(
-            f"Background process error: Architecture and model metrics evaluation for run ID '{modelinfo.run_id}': {e}"
+            f"Background process error: Model metrics evaluation for run ID '{modelinfo.run_id}': {e}"
         )
     finally:
         logger.info(
-            f"Background process finished: Architecture and model metrics evaluation for run ID '{modelinfo.run_id}'"
+            f"Background process finished: Model metrics evaluation for run ID '{modelinfo.run_id}'"
         )
 
 
@@ -244,6 +246,7 @@ def get_mlflow_model(model_name):
         "name": model_name,
         "version": latest_version.version,
         "model_filepath": model_path,  # this is an absolute path matching our docker container file structure
+        "model_uri": latest_version.source,
         "status": latest_version.status,
         "architecture": params.get("architecture", None),
         "class_names": params.get("class_names", None),

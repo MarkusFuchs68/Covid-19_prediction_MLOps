@@ -6,9 +6,9 @@ from fastapi import BackgroundTasks, FastAPI
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from ml_train_hub.app.mlflow_util import (
+    evaluate_and_log_metrics,
     get_mlflow_model,
     list_mlflow_models,
-    log_metrics_and_architecture,
     log_mlflow_experiment,
 )
 
@@ -89,6 +89,7 @@ async def register_model(
     model_name: str,
     class_names: list[str],
     experiment_name: str,
+    max_num: int,
     background_tasks: BackgroundTasks,
 ):
     """
@@ -97,8 +98,9 @@ async def register_model(
     Args:
     - model_filepath (str): Path to the trained model file. Note: docker container shares folder 'file_exchange', put your model files into file_exchange and specify e.g. 'file_exchange/my_model.keras'. Only *.keras model files are supported!
     - model_name (str): Name under which the model will be registered.
-    - class_names (list[str]): List of human-readable class names associated with the prediction indices.
     - experiment_name (str): Name of the MLflow experiment. If empty, it defaults to "Covid_Models".
+    - max_num (int): Maximum number of predictions in order to respect server ressources, if 0 then all evaluation data is used.
+    - class_names (list[str]): List of human-readable class names associated with the prediction indices in json-format in the request body, example: ["COVID", "Lung_Opacity", "Normal", "Viral Pneumonia"].
 
     Returns:
     - dict: Contains information about the registered run (e.g., run name).
@@ -120,7 +122,7 @@ async def register_model(
     # If until here no exception occurred, the model is registered successfully
     # In a background task start the evaluation of the model, which adds additional data to it.
     # This takes some time, hence we let this do in a background task.
-    background_tasks.add_task(log_metrics_and_architecture, modelinfo)
+    background_tasks.add_task(evaluate_and_log_metrics, modelinfo, class_names, max_num)
     logger.info(
         f"Triggered background process for model architecture and metrics for run_id: {modelinfo.run_id}"
     )
