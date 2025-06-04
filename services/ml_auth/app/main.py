@@ -1,13 +1,10 @@
 import logging
 
 import ml_auth.app.exceptions.auth_exceptions as ae
-from ml_auth.app.user_db import UserSchema
-import ml_auth.app.jwt_handler
-from fastapi import Request, Body, Depends
+from fastapi import Body, Depends, FastAPI, Request, status
 from fastapi.responses import JSONResponse
-from fastapi import FastAPI
-from fastapi import status
-
+from ml_auth.app.jwt_handler import JWTBearer, decode_jwt, sign_jwt
+from ml_auth.app.user_db import UserDb, UserSchema
 
 # Configure logging
 logging.basicConfig(
@@ -19,19 +16,26 @@ logger = logging.getLogger(__name__)
 # our singleton MLFlow API
 app = FastAPI()
 
+# our singleton user DB
+user_db = UserDb()
+
 
 @app.exception_handler(ae.FailedAuthentification)
 async def handle_failed_authentification_exception(
     request: Request, exception: ae.FailedAuthentification
 ):
-    return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"message": exception.message})
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED, content={"message": exception.message}
+    )
 
 
 @app.exception_handler(ae.InvalidArgumentException)
 async def handle_invalid_argument(
     request: Request, exception: ae.InvalidArgumentException
 ):
-    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": exception.message})
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST, content={"message": exception.message}
+    )
 
 
 @app.get("/ping")
@@ -56,14 +60,14 @@ async def read_root_secured():
 
 @api.post("/login", tags=["user"])
 async def user_login(user: UserSchema = Body(...)):
-    if check_user(user):
-        return sign_jwt(user.email)
+    if user_db.check_user(user):
+        return sign_jwt(user.username)
     return {"error": "Wrong login details!"}
 
 
 def verify_jwt_token(token: str):
     try:
-        payload = ml_auth.app.jwt_handler.decode_jwt(token)
+        payload = decode_jwt(token)
         return payload if payload else None
     except Exception as e:
         logger.error(f"JWT verification failed: {e}")
@@ -76,6 +80,4 @@ async def verify_jwt_endpoint(token: str = Body(...)):
     if payload:
         return {"valid": True, "payload": payload}
     else:
-        raise ae.FailedAuthentification(
-            message="Invalid or expired JWT token."
-        )
+        raise ae.FailedAuthentification(message="Invalid or expired JWT token.")
