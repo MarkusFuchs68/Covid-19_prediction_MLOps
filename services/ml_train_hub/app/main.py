@@ -12,6 +12,7 @@ from ml_train_hub.app.mlflow_util import (
     log_mlflow_experiment,
 )
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
