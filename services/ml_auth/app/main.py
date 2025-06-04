@@ -50,15 +50,12 @@ def health():
     return {"status": "healthy"}
 
 
-api = FastAPI()
-
-
-@api.get("/secured", dependencies=[Depends(JWTBearer())], tags=["root"])
+@app.get("/secured", dependencies=[Depends(JWTBearer())], tags=["root"])
 async def read_root_secured():
     return {"message": "Hello World! but secured"}
 
 
-@api.post("/login", tags=["user"])
+@app.post("/login", tags=["user"])
 async def user_login(user: UserSchema = Body(...)):
     if user_db.check_user(user):
         return sign_jwt(user.username)
