@@ -1,1 +1,2 @@
 fastapi[standard]~=0.115.12
+jwt~=1.3.1

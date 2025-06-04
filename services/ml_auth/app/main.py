@@ -1,5 +1,7 @@
 import logging
+import os
 
+print("Runtime root folder:", os.getcwd())
 import ml_auth.app.exceptions.auth_exceptions as ae
 from fastapi import Body, Depends, FastAPI, Request, status
 from fastapi.responses import JSONResponse
