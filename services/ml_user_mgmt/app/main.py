@@ -2,11 +2,12 @@ import logging
 import os
 
 print("Runtime root folder:", os.getcwd())
-import ml_auth.app.exceptions.auth_exceptions as ae
-from fastapi import Body, Depends, FastAPI, Request, status
+import ml_user_mgmt.app.exceptions.auth_exceptions as ae
+from fastapi import Body, FastAPI, Request, Security, status
 from fastapi.responses import JSONResponse
-from ml_auth.app.jwt_handler import JWTBearer, decode_jwt, sign_jwt
-from ml_auth.app.user_db import UserDb, UserSchema
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from ml_user_mgmt.app.jwt_handler import decode_jwt, sign_jwt
+from ml_user_mgmt.app.user_db import UserDb, UserSchema
 
 # Configure logging
 logging.basicConfig(
@@ -52,16 +53,16 @@ def health():
     return {"status": "healthy"}
 
 
-@app.get("/secured", dependencies=[Depends(JWTBearer())], tags=["root"])
-async def read_root_secured():
-    return {"message": "Hello World! but secured"}
-
-
-@app.post("/login", tags=["user"])
-async def user_login(user: UserSchema = Body(...)):
+@app.post("/token")
+async def create_token(user: UserSchema = Body(...)):
     if user_db.check_user(user):
+        logger.info(f"Created JWT for user {user.username}.")
         return sign_jwt(user.username)
-    return {"error": "Wrong login details!"}
+    else:
+        logger.info(
+            f"User {user.username} tried to get JWT, but credentials are wrong."
+        )
+        raise ae.FailedAuthentification(message="Wrong login credentials!")
 
 
 def verify_jwt_token(token: str):
@@ -73,10 +74,20 @@ def verify_jwt_token(token: str):
         return None
 
 
-@app.post("/verify-jwt", tags=["auth"])
-async def verify_jwt_endpoint(token: str = Body(...)):
+@app.get("/verify-token")
+async def verify_jwt(
+    credentials: HTTPAuthorizationCredentials = Security(HTTPBearer()),
+):
+    token = credentials.credentials
     payload = verify_jwt_token(token)
     if payload:
+        logger.info(f"Verified JWT: {payload}")
         return {"valid": True, "payload": payload}
     else:
         raise ae.FailedAuthentification(message="Invalid or expired JWT token.")
+
+
+# For debugging
+if __name__ == "__main__":
+    user = UserSchema(username="user123", password="pass123")
+    print(sign_jwt(user.username))

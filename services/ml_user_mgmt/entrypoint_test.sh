@@ -14,7 +14,7 @@ echo "🚀 Starting in '$RUNNING_STAGE' mode..."
 echo "FastAPI will run on port $UVICORN_PORT"
 
 # Start FastAPI server in background
-uvicorn ml_auth.app.main:app --host 0.0.0.0 --port $UVICORN_PORT &
+uvicorn ml_user_mgmt.app.main:app --host 0.0.0.0 --port $UVICORN_PORT &
 
 # Wait for FastAPI (Uvicorn) server
 echo "Waiting for Uvicorn server to be ready..."

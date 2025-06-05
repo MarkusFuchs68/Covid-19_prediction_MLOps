@@ -1,17 +1,17 @@
 ### create those images with:
-# dev: docker image build --target dev -t ml_auth:dev .
-# test: docker image build --target test -t ml_auth:test .
-# prod: docker image build --target prod -t ml_auth:<version_number> .
-### run them with (-d = detached) from the ml_auth folder!:
-# dev: docker run -d --rm -p 8003:8003 --name ml_auth_dev ml_auth:dev
-# test: docker run --rm -p 8003:8003 --name ml_auth_test ml_auth:test
-# prod: docker run -d --rm -p 8083:8083 --name ml_auth_prod ml_auth:<version_number>
+# dev: docker image build --target dev -t ml_user_mgmt:dev .
+# test: docker image build --target test -t ml_user_mgmt:test .
+# prod: docker image build --target prod -t ml_user_mgmt:<version_number> .
+### run them with (-d = detached) from the ml_user_mgmt folder!:
+# dev: docker run -d --rm -p 8003:8003 --name ml_user_mgmt_dev ml_user_mgmt:dev
+# test: docker run --rm -p 8003:8003 --name ml_user_mgmt_test ml_user_mgmt:test
+# prod: docker run -d --rm -p 8083:8083 --name ml_user_mgmt_prod ml_user_mgmt:<version_number>
 
 # ----- BASE BUILD STAGE -----
 FROM python:3.11.9-slim AS builder
 
 # set work directory
-WORKDIR /home/services/ml_auth
+WORKDIR /home/services/ml_user_mgmt
 ENV PYTHONPATH=/home/services
 
 # set up environment variables

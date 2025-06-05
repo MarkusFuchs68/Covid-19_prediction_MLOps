@@ -1,9 +1,8 @@
-import jwt
 import time
 
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import jwt
 from fastapi import HTTPException, Request
-
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 JWT_SECRET = "secret"  # this should be specified in a vault in a real application
 JWT_ALGORITHM = "HS256"
@@ -22,12 +21,8 @@ def sign_jwt(user_id: str):
 
 def decode_jwt(token: str):
     try:
-        decoded_token = jwt.decode(
-            token, JWT_SECRET, algorithms=[JWT_ALGORITHM]
-        )
-        return (
-            decoded_token if decoded_token["expires"] >= time.time() else None
-        )
+        decoded_token = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return decoded_token if decoded_token["expires"] >= time.time() else None
     except Exception:
         return {}
 
@@ -37,7 +32,9 @@ class JWTBearer(HTTPBearer):
         super(JWTBearer, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request):
-        credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
+        credentials: HTTPAuthorizationCredentials = await super(
+            JWTBearer, self
+        ).__call__(request)
         if credentials:
             if not credentials.scheme == "Bearer":
                 raise HTTPException(
@@ -49,9 +46,7 @@ class JWTBearer(HTTPBearer):
                 )
             return credentials.credentials
         else:
-            raise HTTPException(
-                status_code=403, detail="Invalid authorization code."
-            )
+            raise HTTPException(status_code=403, detail="Invalid authorization code.")
 
     def verify_jwt(self, jwtoken: str):
         isTokenValid: bool = False

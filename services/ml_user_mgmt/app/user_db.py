@@ -2,12 +2,11 @@ from pydantic import BaseModel
 
 
 class UserSchema(BaseModel):
-    def __init__(self, username: str, password: str):
-        self.username = username
-        self.password = password
+    username: str
+    password: str
 
 
-class UserDb():
+class UserDb:
     def __init__(self):
         # This holds our user database
         self.users = [

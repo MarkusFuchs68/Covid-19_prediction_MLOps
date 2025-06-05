@@ -45,7 +45,7 @@ def decode_jwt(token: str):
         )
     except Exception:
         return {}
-    
+
 
 class JWTBearer(HTTPBearer):
     def __init__(self, auto_error: bool = True):
