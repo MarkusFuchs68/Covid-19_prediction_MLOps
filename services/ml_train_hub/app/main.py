@@ -73,10 +73,8 @@ async def list_models(
     This function returns a list of all available models in MLFlow
     """
 
-    # Verify the JWT
-    get_current_user(
-        credentials
-    )  # This authenticates the user via a call to to ml_auth/verify-token
+    # Verify the JWT via ml_user_mgmt/verify-token endpoint
+    get_current_user(credentials)
 
     return {"models": list_mlflow_models()}
 
@@ -93,10 +91,8 @@ async def get_model(
     - model_name: The model to be retrieved
     """
 
-    # Verify the JWT
-    get_current_user(
-        credentials
-    )  # This authenticates the user via a call to to ml_auth/verify-token
+    # Verify the JWT via ml_user_mgmt/verify-token endpoint
+    get_current_user(credentials)
 
     return get_mlflow_model(model_name)
 
@@ -125,10 +121,8 @@ async def register_model(
     - dict: Contains information about the registered run (e.g., run name).
     """
 
-    # Verify the JWT
-    get_current_user(
-        credentials
-    )  # This authenticates the user via a call to to ml_auth/verify-token
+    # Verify the JWT via ml_user_mgmt/verify-token endpoint
+    get_current_user(credentials)
 
     # Optionally default to our standard experiment_name
     if experiment_name and experiment_name == "":

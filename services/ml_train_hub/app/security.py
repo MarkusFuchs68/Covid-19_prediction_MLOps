@@ -1,7 +1,14 @@
+import logging
 import os
 
 import requests
 from fastapi import HTTPException, status
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 def get_env_variable(name: str, default=None):
@@ -26,6 +33,7 @@ else:
 
 USER_MGMT_TOKEN_ENDPOINT = USER_MGMT_URL + "/token"
 USER_MGMT_VERIFY_ENDPOINT = USER_MGMT_URL + "/verify-token"
+logger.info(f"The ml_user_mgmt service is used at: {USER_MGMT_URL}")
 
 
 def issue_jwt_token(username, password):
@@ -33,9 +41,11 @@ def issue_jwt_token(username, password):
     credentials = {"username": username, "password": password}
     resp = requests.post(USER_MGMT_TOKEN_ENDPOINT, json=credentials)
     if resp.status_code != status.HTTP_200_OK:
+        logger.error("Failed to obtain JWT")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )
+    logger.info(f"Obtained a JWT for user {username}")
     return resp.json().get("access_token")
 
 
@@ -44,9 +54,11 @@ def verify_jwt_with_user_mgmt(token: str):
     headers = {"Authorization": f"Bearer {token}"}
     resp = requests.get(USER_MGMT_VERIFY_ENDPOINT, headers=headers)
     if resp.status_code != status.HTTP_200_OK:
+        logger.error(f"Failed to verify JWT: {resp.status_code}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
         )
+    logger.info(f"Successfully verified JWT for user: {resp.json()}")
     return resp.json()
 
 
@@ -54,6 +66,7 @@ def get_current_user(credentials):
     # This expects a HTTPAuthorizationCredentials = Security(HTTPBearer() object
     token = credentials.credentials
     if not token:
+        logger.error("JWT missing")
         raise HTTPException(status_code=401, detail="Missing token")
     return verify_jwt_with_user_mgmt(token)
 
