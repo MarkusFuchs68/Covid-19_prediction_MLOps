@@ -1,0 +1,130 @@
+name: ML Train Hub CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'dev-*-*'
+    paths:
+      - 'services/ml_train_hub/**'
+  pull_request:
+    branches:
+      - main
+      - 'dev-*-*'
+    paths:
+      - 'services/ml_train_hub/**'
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  determine_stage:
+    runs-on: ubuntu-latest
+    outputs:
+      stage: ${{ steps.set-stage.outputs.stage }}
+    steps:
+      - name: Determine stage from branch
+        id: set-stage
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "Branch name: $BRANCH_NAME"
+
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            echo "stage=prod" >> $GITHUB_OUTPUT
+            echo "Building for production stage"
+          elif [[ "$BRANCH_NAME" =~ ^dev-.*-.*$ ]]; then
+            echo "stage=dev" >> $GITHUB_OUTPUT
+            echo "Building for development stage"
+          else
+            echo "stage=test" >> $GITHUB_OUTPUT
+            echo "Building for test stage"
+          fi
+
+  build_and_test:
+    needs: determine_stage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build test image
+        run: |
+          echo "Building ml_train_hub test image"
+          docker build --target test -t ml_train_hub:test -f services/ml_train_hub/Dockerfile services/ml_train_hub
+
+      - name: Run tests
+        run: |
+          echo "Running ml_train_hub tests"
+          docker run --name ml_train_hub_test ml_train_hub:test
+
+      - name: Build stage-specific image
+        run: |
+          STAGE="${{ needs.determine_stage.outputs.stage }}"
+          echo "Building ml_train_hub $STAGE image"
+
+          if [[ "$STAGE" == "prod" ]]; then
+            # Build production image
+            docker build --target prod -t ml_train_hub:prod -f services/ml_train_hub/Dockerfile services/ml_train_hub
+            echo "Production image built successfully"
+          elif [[ "$STAGE" == "dev" ]]; then
+            # Build development image
+            docker build --target dev -t ml_train_hub:dev -f services/ml_train_hub/Dockerfile services/ml_train_hub
+            echo "Development image built successfully"
+          fi
+
+  # This job would only run for production deployments
+  deploy_prod:
+    needs: [determine_stage, build_and_test]
+    runs-on: ubuntu-latest
+    if: needs.determine_stage.outputs.stage == 'prod'
+    steps:
+      - name: Setup DVC
+        run: |
+          pip install dvc 'dvc[s3]'
+          # In a real scenario, you would configure DVC credentials here
+          # using GitHub secrets
+
+      - name: Pull DVC data
+        run: |
+          echo "Pulling data from DVC"
+          # In a real scenario, this would pull the data from DVC
+          # dvc pull
+          echo "DVC data pull completed"
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying ml_train_hub to production"
+          # In a real scenario, this would include steps to:
+          # - Push the image to a registry
+          # - Deploy to a production environment
+          # - Configure MLflow server
+          echo "Production deployment completed"
+
+  # This job would only run for development deployments
+  deploy_dev:
+    needs: [determine_stage, build_and_test]
+    runs-on: ubuntu-latest
+    if: needs.determine_stage.outputs.stage == 'dev'
+    steps:
+      - name: Setup DVC
+        run: |
+          pip install dvc 'dvc[s3]'
+          # In a real scenario, you would configure DVC credentials here
+          # using GitHub secrets
+
+      - name: Pull DVC data
+        run: |
+          echo "Pulling data from DVC for development"
+          # In a real scenario, this would pull the data from DVC
+          # dvc pull
+          echo "DVC data pull completed"
+
+      - name: Deploy to development
+        run: |
+          echo "Deploying ml_train_hub to development environment"
+          # In a real scenario, this would include steps to:
+          # - Push the image to a registry
+          # - Deploy to a development environment
+          echo "Development deployment completed"
