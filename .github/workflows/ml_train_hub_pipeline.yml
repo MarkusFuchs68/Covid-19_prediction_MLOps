@@ -66,7 +66,7 @@ jobs:
 
           echo "Pulling data and mlruns from DAGsHub"
           cd services/ml_train_hub
-          dvc pull data.dvc mlruns.dvc
+          dvc pull
           cd ../..
 
       - name: Set up Docker Buildx
@@ -126,7 +126,7 @@ jobs:
 
           echo "Pulling data and mlruns from DAGsHub for production"
           cd services/ml_train_hub
-          dvc pull data.dvc mlruns.dvc
+          dvc pull
           echo "DVC data pull completed"
 
       - name: Deploy to production
@@ -167,7 +167,7 @@ jobs:
 
           echo "Pulling data and mlruns from DAGsHub for development"
           cd services/ml_train_hub
-          dvc pull data.dvc mlruns.dvc
+          dvc pull
           echo "DVC data pull completed"
 
       - name: Deploy to development
