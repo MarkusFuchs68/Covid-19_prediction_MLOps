@@ -57,12 +57,12 @@ jobs:
 
       - name: Configure DVC and pull data
         env:
-          DAGSHUB_ACCESS_KEY_ID: ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
-          DAGSHUB_SECRET_ACCESS_KEY: ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+          DVC_ACCESS_KEY_ID: ${{ secrets.DVC_ACCESS_KEY_ID }}
+          DVC_SECRET_ACCESS_KEY: ${{ secrets.DVC_SECRET_ACCESS_KEY }}
         run: |
           echo "Configuring DVC for DAGsHub"
-          dvc remote modify origin access_key_id $DAGSHUB_ACCESS_KEY_ID
-          dvc remote modify origin secret_access_key $DAGSHUB_SECRET_ACCESS_KEY
+          dvc remote modify origin access_key_id $DVC_ACCESS_KEY_ID
+          dvc remote modify origin secret_access_key $DVC_SECRET_ACCESS_KEY
 
           echo "Pulling data and mlruns from DAGsHub"
           cd services/ml_train_hub
@@ -117,12 +117,12 @@ jobs:
 
       - name: Pull DVC data
         env:
-          DAGSHUB_ACCESS_KEY_ID: ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
-          DAGSHUB_SECRET_ACCESS_KEY: ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+          DVC_ACCESS_KEY_ID: ${{ secrets.DVC_ACCESS_KEY_ID }}
+          DVC_SECRET_ACCESS_KEY: ${{ secrets.DVC_SECRET_ACCESS_KEY }}
         run: |
           echo "Configuring DVC for DAGsHub"
-          dvc remote modify origin access_key_id $DAGSHUB_ACCESS_KEY_ID
-          dvc remote modify origin secret_access_key $DAGSHUB_SECRET_ACCESS_KEY
+          dvc remote modify origin access_key_id $DVC_ACCESS_KEY_ID
+          dvc remote modify origin secret_access_key $DVC_SECRET_ACCESS_KEY
 
           echo "Pulling data and mlruns from DAGsHub for production"
           cd services/ml_train_hub
@@ -158,12 +158,12 @@ jobs:
 
       - name: Pull DVC data
         env:
-          DAGSHUB_ACCESS_KEY_ID: ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
-          DAGSHUB_SECRET_ACCESS_KEY: ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+          DVC_ACCESS_KEY_ID: ${{ secrets.DVC_ACCESS_KEY_ID }}
+          DVC_SECRET_ACCESS_KEY: ${{ secrets.DVC_SECRET_ACCESS_KEY }}
         run: |
           echo "Configuring DVC for DAGsHub"
-          dvc remote modify origin access_key_id $DAGSHUB_ACCESS_KEY_ID
-          dvc remote modify origin secret_access_key $DAGSHUB_SECRET_ACCESS_KEY
+          dvc remote modify origin access_key_id $DVC_ACCESS_KEY_ID
+          dvc remote modify origin secret_access_key $DVC_SECRET_ACCESS_KEY
 
           echo "Pulling data and mlruns from DAGsHub for development"
           cd services/ml_train_hub
