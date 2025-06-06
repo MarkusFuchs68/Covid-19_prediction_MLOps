@@ -71,3 +71,8 @@ def test_secured_endpoint_with_valid_token(test_auth_client):
     response = test_auth_client.get("/secured", headers=headers)
     assert response.status_code == 200
 """
+
+
+def test_only_to_trigger_actions_pipeline():
+    print("triggered")
+    assert True
