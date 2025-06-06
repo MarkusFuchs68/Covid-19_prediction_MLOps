@@ -7,14 +7,6 @@ on:
       - 'dev-*-*'
     paths:
       - 'services/ml_train_hub/**'
-  pull_request:
-    branches:
-      - main
-      - 'dev-*-*'
-    paths:
-      - 'services/ml_train_hub/**'
-  # Allow manual triggering
-  workflow_dispatch:
 
 jobs:
   determine_stage:
