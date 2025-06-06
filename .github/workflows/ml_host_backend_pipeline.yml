@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - 'dev-*-*'
+      - 'dev-*'
     paths:
       - 'services/ml_host_backend/**'
 
@@ -23,7 +23,7 @@ jobs:
           if [[ "$BRANCH_NAME" == "main" ]]; then
             echo "stage=prod" >> $GITHUB_OUTPUT
             echo "Building for production stage"
-          elif [[ "$BRANCH_NAME" =~ ^dev-.*-.*$ ]]; then
+          elif [[ "$BRANCH_NAME" =~ ^dev-.* ]]; then
             echo "stage=dev" >> $GITHUB_OUTPUT
             echo "Building for development stage"
           else

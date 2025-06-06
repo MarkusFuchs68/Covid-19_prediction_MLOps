@@ -19,12 +19,12 @@ Example: `dev-vishal-ci-cd`
 A complete CI/CD pipeline for the ML Host Backend service that builds, tests, and deploys the service based on the branch name.
 
 **Triggers:**
-- Push to `main` or `dev-*-*` branches that changes files in `services/ml_host_backend/`
-- Pull requests to `main` or `dev-*-*` branches that changes files in `services/ml_host_backend/`
+- Push to `main` or `dev-*` branches that changes files in `services/ml_host_backend/`
+- Pull requests to `main` or `dev-*` branches that changes files in `services/ml_host_backend/`
 
 **Stages:**
 - For `main` branch: Builds and deploys production image
-- For `dev-*-*` branches: Builds and deploys development image
+- For `dev-*` branches: Builds and deploys development image
 - For other branches: Runs tests only
 
 ### 2. ML Train Hub CI/CD Pipeline (`ml_train_hub_pipeline.yml`)
@@ -32,12 +32,12 @@ A complete CI/CD pipeline for the ML Host Backend service that builds, tests, an
 A complete CI/CD pipeline for the ML Train Hub service that builds, tests, and deploys the service based on the branch name.
 
 **Triggers:**
-- Push to `main` or `dev-*-*` branches that changes files in `services/ml_train_hub/`
-- Pull requests to `main` or `dev-*-*` branches that changes files in `services/ml_train_hub/`
+- Push to `main` or `dev-*` branches that changes files in `services/ml_train_hub/`
+- Pull requests to `main` or `dev-*` branches that changes files in `services/ml_train_hub/`
 
 **Stages:**
 - For `main` branch: Builds and deploys production image, pulls DVC data
-- For `dev-*-*` branches: Builds and deploys development image, pulls DVC data
+- For `dev-*` branches: Builds and deploys development image, pulls DVC data
 - For other branches: Runs tests only
 
 ### 3. ML User Management CI/CD Pipeline (`ml_user_mgmt_pipeline.yml`)
@@ -45,12 +45,12 @@ A complete CI/CD pipeline for the ML Train Hub service that builds, tests, and d
 A complete CI/CD pipeline for the ML User Management service that builds, tests, and deploys the service based on the branch name.
 
 **Triggers:**
-- Push to `main` or `dev-*-*` branches that changes files in `services/ml_user_mgmt/`
-- Pull requests to `main` or `dev-*-*` branches that changes files in `services/ml_user_mgmt/`
+- Push to `main` or `dev-*` branches that changes files in `services/ml_user_mgmt/`
+- Pull requests to `main` or `dev-*` branches that changes files in `services/ml_user_mgmt/`
 
 **Stages:**
 - For `main` branch: Builds and deploys production image
-- For `dev-*-*` branches: Builds and deploys development image
+- For `dev-*` branches: Builds and deploys development image
 - For other branches: Runs tests only
 
 ## How to Use
@@ -59,7 +59,18 @@ A complete CI/CD pipeline for the ML User Management service that builds, tests,
 
 The workflows are automatically triggered based on the branch name and the files that are changed. For example, if you push changes to the `services/ml_host_backend/` directory on a branch named `dev-john-feature`, the `ml_host_backend_pipeline.yml` workflow will be triggered and will build and deploy a development image.
 
+### 4. Combined CI/CD Pipeline (`combined_pipeline.yml`)
 
+A pipeline that builds, tests, and deploys all services together. Useful for major releases or when changes affect multiple services.
+
+**Triggers:**
+- Push to `main` or `dev-*` branches that changes files in any service directory, docker-compose files, or the workflow itself
+- Pull requests to `main` or `dev-*` branches that changes files in any service directory, docker-compose files, or the workflow itself
+
+**Stages:**
+- For `main` branch: Builds, tests, and deploys all services
+- For `dev-*` branches: Builds, tests, and deploys all services to development environment
+- For other branches: Runs tests only
 
 ### Required Secrets
 
