@@ -199,8 +199,3 @@ def test_make_prediction_for_image_prediction_invalid_input(client):
         )
         assert response.status_code == 400
         assert response.json()["message"] == "Invalid image file format."
-
-
-def test_only_to_trigger_actions_pipeline():
-    print("triggered")
-    assert True

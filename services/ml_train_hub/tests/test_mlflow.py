@@ -63,11 +63,6 @@ def test_get_model_not_found(test_train_hub_client):
     }
 
 
-def test_only_to_trigger_actions_pipeline():
-    print("triggered")
-    assert True
-
-
 # For debugging
 if __name__ == "__main__":
     # from fastapi.testclient import TestClient
