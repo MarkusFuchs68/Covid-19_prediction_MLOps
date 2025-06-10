@@ -82,6 +82,14 @@ you can use an alternative to docker desktop on Mac in order to improve docker p
 - \<use your docker commands as usual>
 - <code>colima stop</code> (shut down and switch back to normal docker daemon)
 
+## ml_user_mgmt service
+- for local fastapi server, run this command from the **services** folder: <code>uvicorn ml_user_mgmt.app.main:app --host 0.0.0.0 --port $UVICORN_PORT 8003</code>
+- for local mlflow + fastapi server via docker: <code>docker-compose up ml_user_mgmt_dev</code>
+- Testing:
+  - unit tests: <code>pytest</code>
+  - integration tests: <code>pytest -m integration</code>
+  - or simply run <code>docker-compose up ml_user_mgmt_test</code>, which will start up the FastAPI server, execute all tests and shutdown when finished
+
 ## ml_train_hub service
 - for local mlflow server, run this command from the **services/ml_train_hub** folder: <code>mlflow server --backend-store-uri ./mlruns --default-artifact-root ./mlruns --host 0.0.0.0 --port 8001</code>
 - for local fastapi server, run this command from the **services** folder: <code>uvicorn ml_train_hub.app.main:app --host 0.0.0.0 --port $UVICORN_PORT 8002</code>

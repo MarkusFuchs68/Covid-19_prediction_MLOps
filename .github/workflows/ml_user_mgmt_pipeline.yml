@@ -1,0 +1,97 @@
+name: ML User Management CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'dev-*'
+    paths:
+      - 'services/ml_user_mgmt/**'
+
+jobs:
+  determine_stage:
+    runs-on: ubuntu-latest
+    outputs:
+      stage: ${{ steps.set-stage.outputs.stage }}
+    steps:
+      - name: Determine stage from branch
+        id: set-stage
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "Branch name: $BRANCH_NAME"
+
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            echo "stage=prod" >> $GITHUB_OUTPUT
+            echo "Building for production stage"
+          elif [[ "$BRANCH_NAME" =~ ^dev-.* ]]; then
+            echo "stage=dev" >> $GITHUB_OUTPUT
+            echo "Building for development stage"
+          else
+            echo "stage=test" >> $GITHUB_OUTPUT
+            echo "Building for test stage"
+          fi
+
+  build_and_test:
+    needs: determine_stage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build test image
+        run: |
+          echo "Building ml_user_mgmt test image"
+          docker build --target test -t ml_user_mgmt:test -f services/ml_user_mgmt/Dockerfile services/ml_user_mgmt
+
+      - name: Run tests
+        run: |
+          echo "Running ml_user_mgmt tests"
+          docker run --name ml_user_mgmt_test ml_user_mgmt:test
+
+      - name: Build stage-specific image
+        run: |
+          STAGE="${{ needs.determine_stage.outputs.stage }}"
+          echo "Building ml_user_mgmt $STAGE image"
+
+          if [[ "$STAGE" == "prod" ]]; then
+            # Build production image
+            docker build --target prod -t ml_user_mgmt:prod -f services/ml_user_mgmt/Dockerfile services/ml_user_mgmt
+            echo "Production image built successfully"
+          elif [[ "$STAGE" == "dev" ]]; then
+            # Build development image
+            docker build --target dev -t ml_user_mgmt:dev -f services/ml_user_mgmt/Dockerfile services/ml_user_mgmt
+            echo "Development image built successfully"
+          fi
+
+  # This job would only run for production deployments
+  deploy_prod:
+    needs: [determine_stage, build_and_test]
+    runs-on: ubuntu-latest
+    if: needs.determine_stage.outputs.stage == 'prod'
+    steps:
+      - name: Deploy to production
+        run: |
+          echo "Deploying ml_user_mgmt to production"
+          # In a real scenario, this would include steps to:
+          # - Push the image to a registry
+          # - Deploy to a production environment
+          # - Configure user management service
+          # - Set up authentication and authorization
+          echo "Production deployment completed"
+
+  # This job would only run for development deployments
+  deploy_dev:
+    needs: [determine_stage, build_and_test]
+    runs-on: ubuntu-latest
+    if: needs.determine_stage.outputs.stage == 'dev'
+    steps:
+      - name: Deploy to development
+        run: |
+          echo "Deploying ml_user_mgmt to development environment"
+          # In a real scenario, this would include steps to:
+          # - Push the image to a registry
+          # - Deploy to a development environment
+          echo "Development deployment completed"

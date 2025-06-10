@@ -2,15 +2,17 @@ import logging
 
 import ml_train_hub.app.exceptions.client_exceptions as ce
 import ml_train_hub.app.exceptions.service_exceptions as se
-from fastapi import BackgroundTasks, FastAPI
+from fastapi import BackgroundTasks, FastAPI, Security
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from ml_train_hub.app.mlflow_util import (
     evaluate_and_log_metrics,
     get_mlflow_model,
     list_mlflow_models,
     log_mlflow_experiment,
 )
+from ml_train_hub.app.security import get_current_user
 
 # Configure logging
 logging.basicConfig(
@@ -64,15 +66,23 @@ def health():
 
 
 @app.get("/models/")
-async def list_models():
+async def list_models(
+    credentials: HTTPAuthorizationCredentials = Security(HTTPBearer()),
+):
     """
     This function returns a list of all available models in MLFlow
     """
+
+    # Verify the JWT via ml_user_mgmt/verify-token endpoint
+    get_current_user(credentials)
+
     return {"models": list_mlflow_models()}
 
 
 @app.get("/models/{model_name}")
-async def get_model(model_name: str):
+async def get_model(
+    model_name: str, credentials: HTTPAuthorizationCredentials = Security(HTTPBearer())
+):
     """
     This function returns the information of the desired model and an MLFLow artifact pathname, from where to load.
     It also returns the human readable class names associated with the prediction index.
@@ -80,6 +90,10 @@ async def get_model(model_name: str):
     Parameters:
     - model_name: The model to be retrieved
     """
+
+    # Verify the JWT via ml_user_mgmt/verify-token endpoint
+    get_current_user(credentials)
+
     return get_mlflow_model(model_name)
 
 
@@ -91,6 +105,7 @@ async def register_model(
     experiment_name: str,
     max_num: int,
     background_tasks: BackgroundTasks,
+    credentials: HTTPAuthorizationCredentials = Security(HTTPBearer()),
 ):
     """
     Evaluates the model using the evaluation set and registers it in MLflow as a new version.
@@ -105,6 +120,9 @@ async def register_model(
     Returns:
     - dict: Contains information about the registered run (e.g., run name).
     """
+
+    # Verify the JWT via ml_user_mgmt/verify-token endpoint
+    get_current_user(credentials)
 
     # Optionally default to our standard experiment_name
     if experiment_name and experiment_name == "":

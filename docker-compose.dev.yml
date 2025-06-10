@@ -43,6 +43,7 @@ services:
       - ./.envs/.ml_host_backend
     ports:
     - "8000:8000"
+
   ## --------------------------##
   # ml_train_hub related services
   ## --------------------------##
@@ -58,6 +59,19 @@ services:
       - ./services/ml_train_hub/file_exchange:/home/services/ml_train_hub/file_exchange # adapt the local folder for the prod server, how files shall be exchanged
     ports:
     - "8001-8002:8001-8002" # MLflow server (dev=8001) and FastAPI server (dev=8002)
+
+  ## --------------------------##
+  # ml_user_mgmt related services
+  ## --------------------------##
+  ml_user_mgmt_dev:
+    container_name: ml_user_mgmt_dev
+    image: ml_user_mgmt:dev #  👈 This sets the name and tag
+    build:
+      context: ./services/ml_user_mgmt
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+    - "8003:8003" # FastAPI server (dev=8003)
 
   prometheus: # monitor & store metrics and make them available for grafana
     image: prom/prometheus:latest
