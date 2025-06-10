@@ -121,8 +121,8 @@ initialize DVC:
 
 
 ### FastAPI oberservability
-- TBD
-- https://grafana.com/grafana/dashboards/16110-fastapi-observability/
+- https://grafana.com/grafana/dashboards/22676-fastapi-observability/
+  - using this tool you need to copy paste prometheus targets (e.g. ml_train_hub_dev) into the "Application Name" search box
 - https://pypi.org/project/prometheus-fastapi-instrumentator/
 - https://github.com/trallnag/prometheus-fastapi-instrumentator
 - https://github.com/blueswen/fastapi-observability/tree/main

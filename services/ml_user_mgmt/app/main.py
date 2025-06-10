@@ -9,6 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from ml_user_mgmt.app.jwt_handler import decode_jwt, sign_jwt
 from ml_user_mgmt.app.logging_config import LOGGING_CONFIG
 from ml_user_mgmt.app.user_db import UserDb, UserSchema
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Configure logging
 # init custom logging config
@@ -18,6 +19,9 @@ logger = logging.getLogger(__name__)
 
 # our singleton MLFlow API
 app = FastAPI()
+
+# setup Prometheus instrumentator
+Instrumentator().instrument(app).expose(app)
 
 # our singleton user DB
 user_db = UserDb()

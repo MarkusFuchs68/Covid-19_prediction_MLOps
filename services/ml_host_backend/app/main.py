@@ -10,12 +10,17 @@ from ml_host_backend.app.exceptions.service_exceptions import (
 )
 from ml_host_backend.app.logging_config import LOGGING_CONFIG
 from ml_host_backend.app.routes.models import router as models_router
+from prometheus_fastapi_instrumentator import Instrumentator
 
+# Configure logging
 # init custom logging config
 logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+# setup Prometheus instrumentator
+Instrumentator().instrument(app).expose(app)
 
 
 @app.exception_handler(InvalidArgumentException)
