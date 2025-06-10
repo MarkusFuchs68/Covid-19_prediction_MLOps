@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from ml_host_backend.app.exceptions.client_exceptions import InvalidArgumentException
@@ -6,9 +8,14 @@ from ml_host_backend.app.exceptions.service_exceptions import (
     MLFlowUnavailableException,
     ModelNotFoundException,
 )
+from ml_host_backend.app.logging_config import LOGGING_CONFIG
 from ml_host_backend.app.routes.models import router as models_router
 
+# init custom logging config
+logging.config.dictConfig(LOGGING_CONFIG)
+
 app = FastAPI()
+logger = logging.getLogger(__name__)
 
 
 @app.exception_handler(InvalidArgumentException)

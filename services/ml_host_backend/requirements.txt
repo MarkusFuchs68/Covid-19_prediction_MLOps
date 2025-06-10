@@ -3,4 +3,5 @@ gdown
 numpy
 pandas
 pillow
+python-json-logger~=3.3.0
 requests
