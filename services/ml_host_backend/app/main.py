@@ -13,9 +13,9 @@ from ml_host_backend.app.routes.models import router as models_router
 
 # init custom logging config
 logging.config.dictConfig(LOGGING_CONFIG)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
-logger = logging.getLogger(__name__)
 
 
 @app.exception_handler(InvalidArgumentException)

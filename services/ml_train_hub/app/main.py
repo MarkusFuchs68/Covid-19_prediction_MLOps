@@ -6,6 +6,7 @@ from fastapi import BackgroundTasks, FastAPI, Security
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from ml_train_hub.app.logging_config import LOGGING_CONFIG
 from ml_train_hub.app.mlflow_util import (
     evaluate_and_log_metrics,
     get_mlflow_model,
@@ -15,9 +16,8 @@ from ml_train_hub.app.mlflow_util import (
 from ml_train_hub.app.security import get_current_user
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+# init custom logging config
+logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
 
