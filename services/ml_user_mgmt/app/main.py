@@ -7,17 +7,21 @@ from fastapi import Body, FastAPI, Request, Security, status
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from ml_user_mgmt.app.jwt_handler import decode_jwt, sign_jwt
+from ml_user_mgmt.app.logging_config import LOGGING_CONFIG
 from ml_user_mgmt.app.user_db import UserDb, UserSchema
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+# init custom logging config
+logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
 
 # our singleton MLFlow API
 app = FastAPI()
+
+# setup Prometheus instrumentator
+Instrumentator().instrument(app).expose(app)
 
 # our singleton user DB
 user_db = UserDb()

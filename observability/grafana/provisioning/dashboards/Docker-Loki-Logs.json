@@ -19,7 +19,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
+  "id": 1,
   "links": [],
   "panels": [
     {
@@ -97,7 +97,7 @@
         {
           "direction": "backward",
           "editorMode": "code",
-          "expr": "sum by(detected_level) (\r\n  count_over_time({job=\"docker\"}[$__interval])\r\n)",
+          "expr": "sum by(detected_level) (\r\n  count_over_time({job=\"docker\"}[$__range])\r\n)",
           "queryType": "range",
           "refId": "A"
         }
@@ -306,6 +306,6 @@
   "timezone": "",
   "title": "Docker - Loki container logs",
   "uid": "rpi-loki-logs",
-  "version": 11,
+  "version": 1,
   "weekStart": "monday"
 }

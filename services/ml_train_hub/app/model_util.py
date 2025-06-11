@@ -4,12 +4,12 @@ import logging
 import time
 
 import tensorflow as tf
+from ml_train_hub.app.logging_config import LOGGING_CONFIG
 from tensorflow.keras.utils import image_dataset_from_directory
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+# init custom logging config
+logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
 
@@ -159,7 +159,9 @@ def get_predictions_and_labels(model, dataset, img_num, max_num):
             get_predictions_and_labels._last_log_time = time.time()
         current_time = time.time()
         if current_time - get_predictions_and_labels._last_log_time >= 10:
-            logger.info(f"Predicted {len(y_true)} evaluation images out of {img_num}, continuing until {max_predictions}")
+            logger.info(
+                f"Predicted {len(y_true)} evaluation images out of {img_num}, continuing until {max_predictions}"
+            )
             get_predictions_and_labels._last_log_time = current_time
 
     return y_true, y_pred

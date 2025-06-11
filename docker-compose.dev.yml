@@ -1,5 +1,5 @@
 networks:
-  loki:
+  observability:
 
 services:
   ## -------------------------- ##
@@ -43,6 +43,8 @@ services:
       - ./.envs/.ml_host_backend
     ports:
     - "8000:8000"
+    networks:
+      - observability
 
   ## --------------------------##
   # ml_train_hub related services
@@ -59,6 +61,8 @@ services:
       - ./services/ml_train_hub/file_exchange:/home/services/ml_train_hub/file_exchange # adapt the local folder for the prod server, how files shall be exchanged
     ports:
     - "8001-8002:8001-8002" # MLflow server (dev=8001) and FastAPI server (dev=8002)
+    networks:
+      - observability
 
   ## --------------------------##
   # ml_user_mgmt related services
@@ -72,6 +76,8 @@ services:
       target: dev
     ports:
     - "8003:8003" # FastAPI server (dev=8003)
+    networks:
+      - observability
 
   prometheus: # monitor & store metrics and make them available for grafana
     image: prom/prometheus:latest
@@ -81,7 +87,7 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - loki
+      - observability
 
   loki: # store logs and make them available for grafana
     image: grafana/loki:3.5.1
@@ -92,7 +98,7 @@ services:
       - ./data/loki-data:/loki # persist ingested logs
       - ./observability/loki/loki-config.yml:/etc/loki/loki-config.yml
     networks:
-      - loki
+      - observability
 
   alloy: # ship logs to loki
     image: grafana/alloy:latest
@@ -105,7 +111,7 @@ services:
     ports:
       - "12345:12345"
     networks:
-      - loki
+      - observability
     depends_on:
       - loki
 
@@ -122,7 +128,7 @@ services:
       - ./data/grafana-data:/var/lib/grafana # persist dashboards, users and settings
       - ./observability/grafana/provisioning:/etc/grafana/provisioning # automatically provision (e.g. datasources)
     networks:
-      - loki
+      - observability
 volumes:
   grafana-data:
     driver: local

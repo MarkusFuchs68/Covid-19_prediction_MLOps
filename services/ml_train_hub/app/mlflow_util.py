@@ -6,14 +6,14 @@ from datetime import datetime
 import ml_train_hub.app.exceptions.service_exceptions as se
 import mlflow
 import mlflow.tensorflow
+from ml_train_hub.app.logging_config import LOGGING_CONFIG
 from ml_train_hub.app.model_util import evaluate_model, get_model_architecture
 from mlflow.models.model import ModelInfo
 from tensorflow.keras.models import load_model
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+# init custom logging config
+logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
 
