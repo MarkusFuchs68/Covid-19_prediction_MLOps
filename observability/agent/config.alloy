@@ -8,24 +8,6 @@ loki.write "default" {
   }
 }
 
-local.file_match "local_files" {
-    path_targets = [{"__path__" = "/var/log/*.log"}]
-    sync_period = "5s"
-}
-loki.source.file "log_scrape" {
-    targets    = local.file_match.local_files.targets
-    forward_to = [loki.process.filter_logs.receiver]
-    tail_from_end = true
-}
-loki.process "filter_logs" {
-    stage.drop {
-        source = ""
-        expression  = ".*Connection closed by authenticating user root"
-        drop_counter_reason = "noisy"
-        }
-    forward_to = [loki.write.default.receiver]
-}
-
 local.file_match "docker_files" {
     path_targets = [
         {
@@ -41,10 +23,39 @@ loki.source.file "docker_log_scrape" {
   tail_from_end = true
 }
 loki.process "docker_logs" {
-    stage.drop {
-        source = ""
-        expression  = ".*Connection closed by authenticating user root"
-        drop_counter_reason = "noisy"
+    stage.json {
+        expressions = {
+            log = "log",
+            stream = "stream",
+            time = "time",
         }
+    }
+    stage.replace {
+        source = "log"
+        expression = "\\n$"
+        replace = ""
+    }
+    stage.json {
+        source = "log"
+        expressions = {
+            asctime = "asctime",
+            levelname = "levelname",
+            name = "name",
+            message = "message",
+            pathname = "pathname",
+            lineno = "lineno",
+        }
+    }
+    stage.replace {
+        source = "levelname"
+        expression = "([A-Z]+)"
+        replace = "{{ ToLower .Value }}"
+    }
+    stage.labels {
+        values = {
+            level = "levelname",
+            logger = "name",
+        }
+    }
     forward_to = [loki.write.default.receiver]
 }

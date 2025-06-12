@@ -5,7 +5,15 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['prometheus:9090']
-  - job_name: 'surfhub'
+  - job_name: 'ml_host_backend_dev'
     metrics_path: /metrics
     static_configs:
-      - targets: ['surfhub:8000']
+      - targets: ['ml_host_backend_dev:8000']
+  - job_name: 'ml_train_hub_dev'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['ml_train_hub_dev:8002']
+  - job_name: 'ml_user_mgmt_dev'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['ml_user_mgmt_dev:8003']

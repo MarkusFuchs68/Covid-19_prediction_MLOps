@@ -10,10 +10,6 @@ from ml_host_backend.app.services.models_service import (
     show_summary_of_single_model,
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
