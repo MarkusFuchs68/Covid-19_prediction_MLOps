@@ -1,4 +1,5 @@
 import logging
+import logging.config
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
