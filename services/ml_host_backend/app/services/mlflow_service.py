@@ -25,6 +25,7 @@ def get_mlflow_host_and_port():
 
 def check_service_availability_or_throw():
     mlflow_host, mlflow_port = get_mlflow_host_and_port()
+    print(mlflow_port)
     url = f"http://{mlflow_host}:{mlflow_port}/health"
     try:
         response = requests.get(url, timeout=10)
@@ -41,13 +42,14 @@ def check_service_availability_or_throw():
         )
 
 
-def list_all_models_from_mlflow():
+def list_all_models_from_mlflow(credentials):
     logger.info("Fetching summary of all models from MLFlow.")
     mlflow_host, mlflow_port = check_service_availability_or_throw()
     url = f"http://{mlflow_host}:{mlflow_port}/models"
+    headers = {"Authorization": f"Bearer {credentials.credentials}"}
     logger.info(f"Fetching models summary from MLFlow at: {url}")
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         data = response.json()
         if isinstance(data, dict) and "models" in data:
@@ -58,12 +60,13 @@ def list_all_models_from_mlflow():
         raise MLFlowException(f"Failed to fetch models summary from MLFlow: {e}")
 
 
-def get_single_model_summary_from_mlflow(model_name: str):
+def get_single_model_summary_from_mlflow(model_name: str, credentials):
     logger.info(f"Fetching summary for model: {model_name} from MLFlow.")
     mlflow_host, mlflow_port = check_service_availability_or_throw()
     url = f"http://{mlflow_host}:{mlflow_port}/models/{model_name}"
+    headers = {"Authorization": f"Bearer {credentials.credentials}"}
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, headers=headers, timeout=10)
         if response.status_code == 404:
             logger.warning(f"Model not found: {model_name}")
             raise ModelNotFoundException(message=f"Model '{model_name}' not found")

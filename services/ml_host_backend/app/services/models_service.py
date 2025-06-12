@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from ml_host_backend.app.exceptions.client_exceptions import InvalidArgumentException
-from ml_host_backend.app.exceptions.service_exceptions import ModelNotFoundException
 from ml_host_backend.app.services.meta import classes_4, models_summary
 from PIL import Image, UnidentifiedImageError
 
@@ -16,7 +15,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-MODEL_FOLDER = "/home/services/file_exchange"
 DRIVE_URL = os.getenv("GOOGLE_DRIVE_URL")
 
 
@@ -52,17 +50,17 @@ def download_latest_model_version(model_name: str):
     return models_summary
 
 
-def list_summary_of_all_models():
+def list_summary_of_all_models(credentials):
     """
     Function to list details of all available models from MLFlow.
     """
     from ml_host_backend.app.services.mlflow_service import list_all_models_from_mlflow
 
     logger.info("Fetching summary of all models.")
-    return list_all_models_from_mlflow()
+    return list_all_models_from_mlflow(credentials)
 
 
-def show_summary_of_single_model(model_name: str):
+def show_summary_of_single_model(model_name: str, credentials):
     """
     Function to get details of a single model.
     """
@@ -71,10 +69,10 @@ def show_summary_of_single_model(model_name: str):
     )
 
     logger.info(f"Fetching summary for model: {model_name}")
-    return get_single_model_summary_from_mlflow(model_name)
+    return get_single_model_summary_from_mlflow(model_name, credentials)
 
 
-def predict_image_classification_4_classes(model_name, file_content):
+def predict_image_classification_4_classes(model_name, file_content, credentials):
     """
     Function to predict image classification using the specified model.
     """
@@ -84,19 +82,11 @@ def predict_image_classification_4_classes(model_name, file_content):
     classes = classes_4
 
     logger.info("Identifying model for prediction.")
-    models_summary = list_summary_of_all_models()
+    model_summary = show_summary_of_single_model(model_name, credentials)
 
-    if model_name not in [model["name"] for model in models_summary]:
-        logger.error(f"Model '{model_name}' not found.")
-        raise ModelNotFoundException(f"Model '{model_name}' not found.")
     logger.info(f"Predicting image classification with model: {model_name}")
 
-    # TODO: Load model from MLFlow api once ready
-    # model_path = load_latest_model_version(model_name)
-
-    model_file_name = model_name + ".keras"
-    model_path = os.path.join(MODEL_FOLDER, model_file_name)
-
+    model_path = model_summary["model_filepath"]
     model = tf.keras.models.load_model(model_path)
 
     image_batch = tf.expand_dims(image_prepared, axis=0)

@@ -27,6 +27,15 @@ def patch_mlflow_host_and_port():
         yield
 
 
+@pytest.fixture(autouse=True)
+def mock_jwt_auth():
+    with patch(
+        "ml_host_backend.app.services.auth_service.get_current_user",
+        return_value=True,
+    ):
+        yield
+
+
 def test_get_summary_of_all_models(client):
     expected_models = models_summary
     with patch(
@@ -36,7 +45,9 @@ def test_get_summary_of_all_models(client):
         mock_response.json.return_value = {"models": expected_models}
         mock_response.raise_for_status.return_value = None
         mock_requests_get.return_value = mock_response
-        response = client.get(base_endpoint)
+        response = client.get(
+            base_endpoint, headers={"Authorization": "Bearer test_token"}
+        )
         assert response.status_code == 200
         assert response.json() == expected_models
         assert mock_requests_get.call_count == 2
@@ -54,7 +65,9 @@ def test_get_summary_of_all_models_mlflow_timeout(client):
         mock_requests_get.side_effect = requests.exceptions.ConnectionError(
             "Request timed out"
         )
-        response = client.get(base_endpoint)
+        response = client.get(
+            base_endpoint, headers={"Authorization": "Bearer test_token"}
+        )
         assert response.status_code == 503
         assert (
             "timeout" in response.json()["message"].lower()
@@ -73,7 +86,10 @@ def test_get_summary_of_single_model(client):
         mock_response.json.return_value = mlflow_response
         mock_response.raise_for_status.return_value = None
         mock_requests_get.return_value = mock_response
-        response = client.get(f"{base_endpoint}/{available_model}")
+        response = client.get(
+            f"{base_endpoint}/{available_model}",
+            headers={"Authorization": "Bearer test_token"},
+        )
         assert response.status_code == 200
         assert response.json() == mlflow_response
         assert mock_requests_get.call_count == 2
@@ -90,7 +106,10 @@ def test_get_summary_of_single_model_not_found(client):
         mock_response.status_code = 404
         mock_response.json.return_value = None
         mock_requests_get.return_value = mock_response
-        response = client.get(f"{base_endpoint}/{unavailable_model}")
+        response = client.get(
+            f"{base_endpoint}/{unavailable_model}",
+            headers={"Authorization": "Bearer test_token"},
+        )
         assert response.status_code == 404
         assert response.json()["message"] == f"Model '{unavailable_model}' not found"
         assert mock_requests_get.call_count == 2
@@ -109,7 +128,10 @@ def test_get_summary_of_model_found(client):
         mock_response.json.return_value = mlflow_response
         mock_response.raise_for_status.return_value = None
         mock_requests_get.return_value = mock_response
-        response = client.get(f"{base_endpoint}/{available_model}")
+        response = client.get(
+            f"{base_endpoint}/{available_model}",
+            headers={"Authorization": "Bearer test_token"},
+        )
         assert response.status_code == 200
         assert response.json() == mlflow_response
         assert mock_requests_get.call_count == 2
@@ -133,7 +155,11 @@ def test_make_prediction_for_image_success(client):
         "ml_host_backend.app.services.models_service.tf.keras.models.load_model",
         return_value=mock_model,
     ):
-        response = client.post(f"{base_endpoint}/{available_model}/predict", files=file)
+        response = client.post(
+            f"{base_endpoint}/{available_model}/predict",
+            files=file,
+            headers={"Authorization": "Bearer test_token"},
+        )
         assert response.status_code == 200
         assert response.json()["Predicted"][available_model] == "COVID"
 
@@ -149,7 +175,9 @@ def test_make_prediction_for_image_invalid_file(client):
         file = {"file": ("test.txt", b"not an image", "text/plain")}
         dummy_model_name = "some name"
         response = client.post(
-            f"{base_endpoint}/{dummy_model_name}/predict", files=file
+            f"{base_endpoint}/{dummy_model_name}/predict",
+            files=file,
+            headers={"Authorization": "Bearer test_token"},
         )
         assert response.status_code == 400
         assert "invalid image file format." in response.json()["message"].lower()
@@ -157,7 +185,10 @@ def test_make_prediction_for_image_invalid_file(client):
 
 def test_make_prediction_for_image_missing_file(client):
     available_model = models_summary[0]["name"]
-    response = client.post(f"{base_endpoint}/{available_model}/predict")
+    response = client.post(
+        f"{base_endpoint}/{available_model}/predict",
+        headers={"Authorization": "Bearer test_token"},
+    )
     assert response.status_code == 422
 
 
@@ -177,7 +208,9 @@ def test_make_prediction_for_large_image_file(client):
     ):
         files = {"file": ("large.png", img_bytes, "image/png")}
         response = client.post(
-            f"{base_endpoint}/{available_model}/predict", files=files
+            f"{base_endpoint}/{available_model}/predict",
+            files=files,
+            headers={"Authorization": "Bearer test_token"},
         )
         assert response.status_code == 200
 
@@ -195,7 +228,20 @@ def test_make_prediction_for_image_prediction_invalid_input(client):
         return_value=mock_model,
     ):
         response = client.post(
-            f"{base_endpoint}/{available_model}/predict", files=files
+            f"{base_endpoint}/{available_model}/predict",
+            files=files,
+            headers={"Authorization": "Bearer test_token"},
         )
         assert response.status_code == 400
         assert response.json()["message"] == "Invalid image file format."
+
+
+def test_missing_auth_token(client):
+    """Test that routes return 401 when no auth token is provided."""
+    # Temporarily remove the mock_jwt_auth fixture for this test
+    with patch(
+        "ml_host_backend.app.services.auth_service.get_current_user",
+        side_effect=Exception("No mock for this test"),
+    ):
+        response = client.get(base_endpoint)
+        assert response.status_code == 401

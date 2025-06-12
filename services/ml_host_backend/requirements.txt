@@ -3,4 +3,5 @@ gdown
 numpy
 pandas
 pillow
+PyJWT~=2.10.1
 requests

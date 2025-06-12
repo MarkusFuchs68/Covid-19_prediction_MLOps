@@ -1,6 +1,9 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from ml_host_backend.app.exceptions.client_exceptions import InvalidArgumentException
+from ml_host_backend.app.exceptions.client_exceptions import (
+    InvalidArgumentException,
+    UnauthroizedException,
+)
 from ml_host_backend.app.exceptions.service_exceptions import (
     MLFlowConfigurationException,
     MLFlowUnavailableException,
@@ -16,6 +19,13 @@ async def handle_invalid_argument_exception(
     request: Request, exception: InvalidArgumentException
 ):
     return JSONResponse(status_code=400, content={"message": exception.message})
+
+
+@app.exception_handler(UnauthroizedException)
+async def handle_unauthorized_exception(
+    request: Request, exception: UnauthroizedException
+):
+    return JSONResponse(status_code=401, content={"message": exception.message})
 
 
 @app.exception_handler(ModelNotFoundException)

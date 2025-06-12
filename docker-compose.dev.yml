@@ -15,7 +15,7 @@ services:
   #   image: ml_host_backend:base
   #   volumes:
   #     - ./services/ml_host_backend:/home/services/ml_host_backend
-  #     - ./services/ml_train_hub/file_exchange:/home/services/file_exchange
+  #     - ./services/ml_train_hub/mlruns:/home/services/ml_train_hub/mlruns
   #   container_name: ml_host_backend_local
   #   depends_on:
   #     - ml_host_backend_base_image
@@ -34,11 +34,12 @@ services:
     container_name: ml_host_backend_dev
     volumes:
       - ./services/ml_host_backend:/home/services/ml_host_backend
-      - ./services/ml_train_hub/file_exchange:/home/services/file_exchange
+      - ./services/ml_train_hub/mlruns:/home/services/ml_train_hub/mlruns
     image: ml_host_backend:dev
     depends_on:
       - ml_host_backend_base_image
       - ml_train_hub_dev
+      - ml_user_mgmt_dev
     env_file:
       - ./.envs/.ml_host_backend
     ports:
