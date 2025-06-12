@@ -1,4 +1,5 @@
 import logging
+import time
 
 import jwt
 from fastapi import Request, Security
@@ -19,9 +20,11 @@ def verify_jwt(jwtoken: str):
         raise UnauthroizedException("Invalid token.")
     except jwt.exceptions.ExpiredSignatureError:
         logger.error("Token is expired.")
-        raise UnauthroizedException("Token is expired.")
+        raise UnauthroizedException("Signature has expired.")
     if payload:
-        return True
+        if payload["expires"] >= time.time():
+            return True
+        raise UnauthroizedException("Token is expired.")
     logger.error("Unable to retrieve token payload")
     raise UnauthroizedException("Unable to retrieve token payload")
 
