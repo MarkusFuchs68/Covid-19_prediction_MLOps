@@ -248,7 +248,7 @@ def test_missing_auth_token(client):
     """Test that routes return 401 when no auth token is provided."""
     # Temporarily remove the mock_jwt_auth fixture for this test
     with patch(
-        "ml_host_backend.app.services.auth_service.get_current_user",
+        "ml_host_backend.app.services.auth_service.verify_token",
         side_effect=Exception("No mock for this test"),
     ):
         response = client.get(base_endpoint)
