@@ -48,12 +48,42 @@ class MLFlowException(Exception):
         super().__init__(self.message)
 
 
+class MLUserMgmtException(Exception):
+    """
+    ML User Mgmt exception
+    """
+
+    def __init__(self, message="Could not retrieve token from the service."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class MLUserMgmtUnavailableException(Exception):
+    """
+    ML User Mgmt unavailable
+    """
+
+    def __init__(self, message="ML User Mgmt is unavailable."):
+        self.message = message
+        super().__init__(self.message)
+
+
 class MLFlowUnavailableException(Exception):
     """
     MLFlow unavailable
     """
 
     def __init__(self, message="MLFlow is unavailable."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class MLUserMgmtConfigurationException(Exception):
+    """
+    ML User Mgmt service configuration exception
+    """
+
+    def __init__(self, message="ML User Mgmt service is not correctly configured"):
         self.message = message
         super().__init__(self.message)
 

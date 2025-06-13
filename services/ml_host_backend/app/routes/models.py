@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, File, Security, UploadFile
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from ml_host_backend.app.services.auth_service import get_current_user
+from ml_host_backend.app.services.auth_service import login_user, verify_token
 from ml_host_backend.app.services.models_service import (
     download_latest_model_version,
     list_summary_of_all_models,
@@ -23,7 +23,7 @@ def get_summary_of_all_models(
     Function to list details of all available models.
     """
     # Verify the JWT token
-    get_current_user(credentials)
+    verify_token(credentials)
 
     logger.info("Fetching summary of all models.")
     return list_summary_of_all_models(credentials)
@@ -37,7 +37,7 @@ def get_summary_of_single_model(
     Function to get details of a single model.
     """
     # Verify the JWT token
-    get_current_user(credentials)
+    verify_token(credentials)
 
     return show_summary_of_single_model(model_name, credentials)
 
@@ -50,7 +50,7 @@ def download_model(
     Function to download a model
     """
     # Verify the JWT token
-    get_current_user(credentials)
+    verify_token(credentials)
 
     logger.info(f"Downloading model: {model_name}")
     download_latest_model_version(model_name)
@@ -65,7 +65,7 @@ async def make_prediction_for_image(
     credentials: HTTPAuthorizationCredentials = Security(HTTPBearer()),
 ):
     # Verify the JWT token
-    get_current_user(credentials)
+    verify_token(credentials)
 
     logger.info(f"Starting prediction for model: {model_name}")
     file_content = await file.read()
@@ -80,3 +80,8 @@ async def make_prediction_for_image(
     logger.info(f"Prediction completed for model: {model_name}")
 
     return result
+
+
+@router.post("/login")
+async def login(username: str, password: str):
+    return login_user(username, password)
