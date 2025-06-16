@@ -6,7 +6,7 @@ from ml_host_backend.app.services.auth_service import login_user, verify_token
 from ml_host_backend.app.services.models_service import (
     download_latest_model_version,
     list_summary_of_all_models,
-    predict_image_classification_4_classes,
+    predict_image_classification,
     show_summary_of_single_model,
 )
 
@@ -74,9 +74,7 @@ async def make_prediction_for_image(
     )
 
     logger.info(f"Performing prediction using model: {model_name}")
-    result = predict_image_classification_4_classes(
-        model_name, file_content, credentials
-    )
+    result = predict_image_classification(model_name, file_content, credentials)
     logger.info(f"Prediction completed for model: {model_name}")
 
     return result
