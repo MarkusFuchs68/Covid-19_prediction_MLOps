@@ -126,3 +126,7 @@ initialize DVC:
 - https://pypi.org/project/prometheus-fastapi-instrumentator/
 - https://github.com/trallnag/prometheus-fastapi-instrumentator
 - https://github.com/blueswen/fastapi-observability/tree/main
+
+
+### Streamlit
+- run the streamlit app from the streamlit folder with <code>streamlit run covid19mlops_app.py</code>
