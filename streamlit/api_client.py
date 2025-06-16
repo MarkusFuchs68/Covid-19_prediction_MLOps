@@ -47,8 +47,8 @@ HOST_BACKEND_ENDPOINT_LOGIN = HOST_BACKEND_URL + "/api/models/login"
 
 def login(username, password):
     # Call the ml_auth endpoint for token generation
-    credentials = {"username": username, "password": password}
-    resp = requests.post(HOST_BACKEND_ENDPOINT_LOGIN, json=credentials)
+    params = {"username": username, "password": password}
+    resp = requests.post(HOST_BACKEND_ENDPOINT_LOGIN, params=params)
     if resp.status_code != status.HTTP_200_OK:
         logger.error("Failed to obtain JWT")
         raise HTTPException(
@@ -67,16 +67,16 @@ def register_model(
     max_num: int,
 ):
     Headers = {"Authorization": f"Bearer {token}"}
-    data = {
+    params = {
         "model_filepath": model_filepath,
-        "model_name": model_name,
-        "class_names": class_names,
         "experiment_name": experiment_name,
         "max_num": max_num,
     }
+    data = class_names  # Send class_names as a list in the body
     resp = requests.post(
         TRAIN_HUB_ENDPOINT_REGISTERMODEL.format(model_name=model_name),
         headers=Headers,
+        params=params,
         json=data,
     )
     if resp.status_code != status.HTTP_200_OK:
@@ -99,7 +99,7 @@ def list_models(token: str):
             detail=f"Failed to list models: {resp.text}",
         )
     logger.info("Successfully retrieved list of models")
-    return resp.json().get("models", [])
+    return resp.json()
 
 
 def get_model(token: str, model_name: str):
@@ -121,10 +121,11 @@ def get_model(token: str, model_name: str):
 
 def predict(token: str, model_name: str, data: dict):
     Headers = {"Authorization": f"Bearer {token}"}
+    files = {"file": ("image.jpg", data, "image/jpeg")}
     resp = requests.post(
         HOST_BACKEND_ENDPOINT_PREDICT.format(model_name=model_name),
         headers=Headers,
-        json=data,
+        files=files,
     )
     if resp.status_code != status.HTTP_200_OK:
         logger.error(
