@@ -7,7 +7,7 @@ In this repository we collaborate on the Covid-19 detection project a with focus
 ## Folder Structure
 - services: Place for all containerized services for later deployments
 - prototyping: Place for anything (notebooks, scripts, whatever) does not require testing and coding standards can be ignored.
-- .envs: Place for local env files (e.g. later used for shared docker-compose setup) We can control with gitignore wether files should be on git or not, still: Be cautious using security related files!
+- .envs: Place for local env files (e.g. later used for shared docker-compose setup) We can control with gitignore whether files should be on git or not, still: Be cautious using security related files!
   * public envs for local setup will be shared
   * envs with secrets (on gitignore to not upload sensitive information) can be placed inside .envs folder into .env file (manually create it)
 - .dvc: Related to setup for data version control.
