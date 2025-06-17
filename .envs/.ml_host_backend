@@ -1,5 +1,5 @@
 # vars for local setup, don't place secrets here! (on repos)
-# GOOGLE_DRIVE_URL in custom .env file (on gitingore)
+# GOOGLE_DRIVE_URL in custom .env file (on gitignore)
 GOOGLE_DRIVE_URL=
 MLFLOW_HOST=ml_train_hub_dev
 MLFLOW_PORT=8002
