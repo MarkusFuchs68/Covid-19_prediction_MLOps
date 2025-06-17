@@ -63,6 +63,13 @@ def verify_jwt_with_user_mgmt(token: str):
 
 
 def get_current_user(credentials):
+
+    # This condition should better be set by a read only environment variable,
+    # so in the case the service is hacked, someone could go around authentification,
+    # but for demo purposes we use the running stage
+    if running_stage == "test":
+        return {"user": "test_user", "roles": ["test_role"]}
+
     # This expects a HTTPAuthorizationCredentials = Security(HTTPBearer() object
     token = credentials.credentials
     if not token:
