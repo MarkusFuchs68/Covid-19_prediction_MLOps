@@ -1,4 +1,5 @@
 import logging
+import logging.config
 import os
 
 print("Runtime root folder:", os.getcwd())

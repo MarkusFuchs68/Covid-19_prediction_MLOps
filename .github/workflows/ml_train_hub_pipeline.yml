@@ -66,11 +66,17 @@ jobs:
 
       - name: Build test image
         run: |
+          echo "Building ml_user_mgmt dev image for integration tests"
+          docker build --target dev -t ml_user_mgmt:dev -f services/ml_user_mgmt/Dockerfile services/ml_user_mgmt
           echo "Building ml_train_hub test image"
           docker build --target test -t ml_train_hub:test -f services/ml_train_hub/Dockerfile services/ml_train_hub
 
       - name: Run tests
         run: |
+          echo "Starting ml_user_mgmt dev container"
+           docker run -d --name ml_user_mgmt_dev ml_user_mgmt:dev
+          echo "Sleeping for 10 seconds to allow ml_user_mgmt_dev to initialize"
+          sleep 10
           echo "Running ml_train_hub tests"
           docker run --name ml_train_hub_test ml_train_hub:test
 

@@ -7,11 +7,12 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 from ml_host_backend.app.main import app
-from ml_host_backend.app.services.meta import models_summary
+from ml_host_backend.app.services.meta import classes_2, classes_4
 from PIL import Image
 
 mock_model = MagicMock()
 mock_model.predict.return_value = np.array([[0.1, 0.0, 0.0, 0.0]])
+mock_model.input_shape = [-1, 224, 224, 3]  # Batch, Height, Width, Channels (RGB)
 base_endpoint = "/api/models"
 
 JWT_SECRET = "secret"  # this should be specified in a vault in a real application
@@ -28,6 +29,12 @@ expired_token = jwt.encode(
 )
 incorrect_token = "Bearer any"
 invalid_token = "21243sdsaada"
+
+models_summary = [
+    {"name": "model1", "model_filepath": "path/to/model1", "class_names": classes_4},
+    {"name": "model2", "model_filepath": "path/to/model2", "class_names": classes_4},
+    {"name": "model3", "model_filepath": "path/to/model3", "class_names": classes_2},
+]
 
 
 @pytest.fixture
@@ -147,9 +154,10 @@ def test_get_summary_of_model_found(client):
         assert f"/models/{available_model}" in called_url
 
 
-@pytest.mark.skip(reason="Underlying functionality to be refactored")
 def test_make_prediction_for_image_success(client):
-    img = Image.new("L", (224, 224), color=128)
+    available_model = models_summary[0]["name"]
+    mlflow_response = models_summary[0]
+    img = Image.new("RGB", (224, 224), color=(128, 128, 128))
     img_bytes = io.BytesIO()
     img.save(img_bytes, format="PNG")
     img_bytes.seek(0)
@@ -157,12 +165,16 @@ def test_make_prediction_for_image_success(client):
     available_model = models_summary[0]["name"]
     file = {"file": ("test.png", img_bytes, "image/png")}
     with patch(
-        "ml_host_backend.app.services.google_drive_service.download_model_from_google_drive",
-        return_value=None,
-    ), patch(
+        "ml_host_backend.app.services.mlflow_service.requests.get"
+    ) as mock_requests_get, patch(
         "ml_host_backend.app.services.models_service.tf.keras.models.load_model",
         return_value=mock_model,
     ):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = mlflow_response
+        mock_response.raise_for_status.return_value = None
+        mock_requests_get.return_value = mock_response
         response = client.post(
             f"{base_endpoint}/{available_model}/predict",
             files=file,
@@ -173,22 +185,27 @@ def test_make_prediction_for_image_success(client):
 
 
 def test_make_prediction_for_image_invalid_file(client):
+    available_model = models_summary[0]["name"]
+    mlflow_response = models_summary[0]
     with patch(
-        "ml_host_backend.app.services.google_drive_service.download_model_from_google_drive",
-        return_value=None,
-    ), patch(
+        "ml_host_backend.app.services.mlflow_service.requests.get"
+    ) as mock_requests_get, patch(
         "ml_host_backend.app.services.models_service.tf.keras.models.load_model",
         return_value=mock_model,
     ):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = mlflow_response
+        mock_response.raise_for_status.return_value = None
+        mock_requests_get.return_value = mock_response
         file = {"file": ("test.txt", b"not an image", "text/plain")}
-        dummy_model_name = "some name"
         response = client.post(
-            f"{base_endpoint}/{dummy_model_name}/predict",
+            f"{base_endpoint}/{available_model}/predict",
             files=file,
             headers={"Authorization": f"Bearer {active_token}"},
         )
         assert response.status_code == 400
-        assert "invalid image file format." in response.json()["message"].lower()
+        assert "could not decode image." in response.json()["message"].lower()
 
 
 def test_make_prediction_for_image_missing_file(client):
@@ -200,20 +217,25 @@ def test_make_prediction_for_image_missing_file(client):
     assert response.status_code == 422
 
 
-@pytest.mark.skip(reason="Underlying functionality to be refactored")
 def test_make_prediction_for_large_image_file(client):
-    img = Image.new("L", (4000, 4000), color=128)  # large image
+    available_model = models_summary[0]["name"]
+    mlflow_response = models_summary[0]
+    img = Image.new("RGB", (4000, 4000), color=(128, 128, 128))  # large image
     img_bytes = io.BytesIO()
     img.save(img_bytes, format="PNG")
     img_bytes.seek(0)
     available_model = models_summary[0]["name"]
     with patch(
-        "ml_host_backend.app.services.google_drive_service.download_model_from_google_drive",
-        return_value=None,
-    ), patch(
+        "ml_host_backend.app.services.mlflow_service.requests.get"
+    ) as mock_requests_get, patch(
         "ml_host_backend.app.services.models_service.tf.keras.models.load_model",
         return_value=mock_model,
     ):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = mlflow_response
+        mock_response.raise_for_status.return_value = None
+        mock_requests_get.return_value = mock_response
         files = {"file": ("large.png", img_bytes, "image/png")}
         response = client.post(
             f"{base_endpoint}/{available_model}/predict",
@@ -227,21 +249,26 @@ def test_make_prediction_for_image_prediction_invalid_input(client):
     file_content = b"This is not an image file, just named as one."
     files = {"file": ("test.png", io.BytesIO(file_content))}
     available_model = models_summary[0]["name"]
+    mlflow_response = models_summary[0]
 
     with patch(
-        "ml_host_backend.app.services.google_drive_service.download_model_from_google_drive",
-        return_value=None,
-    ), patch(
+        "ml_host_backend.app.services.mlflow_service.requests.get"
+    ) as mock_requests_get, patch(
         "ml_host_backend.app.services.models_service.tf.keras.models.load_model",
         return_value=mock_model,
     ):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = mlflow_response
+        mock_response.raise_for_status.return_value = None
+        mock_requests_get.return_value = mock_response
         response = client.post(
             f"{base_endpoint}/{available_model}/predict",
             files=files,
             headers={"Authorization": f"Bearer {active_token}"},
         )
         assert response.status_code == 400
-        assert response.json()["message"] == "Invalid image file format."
+        assert response.json()["message"] == "Could not decode image."
 
 
 def test_missing_auth_token(client):

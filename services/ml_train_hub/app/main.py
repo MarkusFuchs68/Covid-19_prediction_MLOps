@@ -1,4 +1,5 @@
 import logging
+import logging.config
 
 import ml_train_hub.app.exceptions.client_exceptions as ce
 import ml_train_hub.app.exceptions.service_exceptions as se
