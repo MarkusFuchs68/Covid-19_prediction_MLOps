@@ -1,8 +1,18 @@
 import os
+import time
 
+import jwt
 import pytest
 from ml_train_hub.app.mlflow_util import log_mlflow_experiment
 from mlflow.models.model import ModelInfo
+
+JWT_SECRET = "secret"  # this should be specified in a vault in a real application or otherwise mocked
+JWT_ALGORITHM = "HS256"
+active_token = jwt.encode(
+    {"user_id": "user123", "expires": time.time() + 600},
+    JWT_SECRET,
+    algorithm=JWT_ALGORITHM,
+)
 
 
 @pytest.mark.integration
@@ -38,7 +48,9 @@ def test_log_experiment_and_register_model():
 @pytest.mark.integration
 def test_list_models(test_train_hub_client):
     """Test list models endpoint (e.g., GET /models)."""
-    response = test_train_hub_client.get("/models")
+    response = test_train_hub_client.get(
+        "/models", headers={"Authorization": f"Bearer {active_token}"}
+    )
     assert response.status_code == 200
 
 
@@ -46,7 +58,9 @@ def test_list_models(test_train_hub_client):
 def test_get_model(test_train_hub_client):
     """Test get model endpoint (e.g., GET /models/{model_name})."""
     # Assuming "Test" is a valid model name in your MLFlow
-    response = test_train_hub_client.get("/models/Test")
+    response = test_train_hub_client.get(
+        "/models/Test", headers={"Authorization": f"Bearer {active_token}"}
+    )
     assert response.status_code == 200
     assert isinstance(response.json(), dict)
     assert "name" in response.json()
@@ -56,7 +70,9 @@ def test_get_model(test_train_hub_client):
 @pytest.mark.integration
 def test_get_model_not_found(test_train_hub_client):
     """Test get model endpoint with a non-existent model name."""
-    response = test_train_hub_client.get("/models/NonExistentModel")
+    response = test_train_hub_client.get(
+        "/models/NonExistentModel", headers={"Authorization": f"Bearer {active_token}"}
+    )
     assert response.status_code == 404
     assert response.json() == {
         "message": "No versions found for model 'NonExistentModel'"
